@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Fotomator</string>
+    <string name="photoMonitoringService_notification_title">Photomator is running</string>
+    <string name="photoMonitoringService_notification_text">New photos will automatically be posted</string>
+    <string name="notification_channel_main_name">Main channel</string>
+    <string name="notification_channel_main_description">Main channel</string>
+    <string name="main_serviceEnabled_switch">Enable Photomator</string>
+    <string name="main_service_toast_enabled">Photomator is now running</string>
+    <string name="main_service_toast_disabled">Photomator is no longer running</string>
+</resources>
