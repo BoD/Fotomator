@@ -7,4 +7,7 @@
     <string name="main_serviceEnabled_switch">Enable Photomator</string>
     <string name="main_service_toast_enabled">Photomator is now running</string>
     <string name="main_service_toast_disabled">Photomator is no longer running</string>
+    <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
+    <string name="slack_auth_button">Start Slack authentication</string>
+    <string name="slack_auth_success">Slack authentication successful</string>
 </resources>

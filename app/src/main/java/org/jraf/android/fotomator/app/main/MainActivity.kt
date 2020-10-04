@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import org.jraf.android.fotomator.R
+import org.jraf.android.fotomator.app.slack.SlackAuthActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.util.log.Log
@@ -24,13 +25,17 @@ class MainActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.main_activity)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
+    }
+
+    override fun onStart() {
+        super.onStart()
         checkPermissions()
     }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                observeUi()
+                onPermissionsOk()
             } else {
                 showNoPermissionUi()
             }
@@ -46,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                 requestPermissionLauncher.launch(permission)
             }
         } else {
-            observeUi()
+            onPermissionsOk()
         }
     }
 
@@ -59,6 +64,18 @@ class MainActivity : AppCompatActivity() {
     private fun showNoPermissionUi() {
         // TODO Show no permission UI
         Log.d()
+    }
+
+    private fun onPermissionsOk() {
+        if (viewModel.slackAuthToken == null) {
+            setupSlackAuth()
+        } else {
+            observeUi()
+        }
+    }
+
+    private fun setupSlackAuth() {
+        startActivity(Intent(this, SlackAuthActivity::class.java))
     }
 
     private fun observeUi() {
