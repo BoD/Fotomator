@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" inkscape:version="1.0beta2 (2b71d25, 2019-12-03)" sodipodi:docname="logo.svg" id="svg16"
+    version="1.1" width="24" viewBox="0 0 24 24" height="24">
+    <metadata id="metadata22">
+        <rdf:RDF>
+            <cc:Work rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+                <dc:title></dc:title>
+            </cc:Work>
+        </rdf:RDF>
+    </metadata>
+    <defs id="defs20" />
+    <sodipodi:namedview inkscape:current-layer="svg16" inkscape:window-maximized="1" inkscape:window-y="23" inkscape:window-x="0" inkscape:cy="13.566457"
+        inkscape:cx="-10.925203" inkscape:zoom="5.1326611" showgrid="false" id="namedview18" inkscape:window-height="855" inkscape:window-width="1440"
+        inkscape:pageshadow="2" inkscape:pageopacity="0" guidetolerance="10" gridtolerance="10" objecttolerance="10" borderopacity="1"
+        inkscape:document-rotation="0" bordercolor="#666666" pagecolor="#ffffff" />
+    <path id="path10" fill="none" d="M0 0h24v24H0V0z" />
+    <path style="stroke:none;fill:#6200ee;fill-opacity:1" id="path12"
+        d="M9 3L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.17L15 3H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+    <g style="font-weight:bold;font-size:17.00349999999999895px;line-height:1.25;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, Bold';stroke-width:0.425088;stroke:none;fill:#f00700;fill-opacity:1"
+        id="text26" transform="scale(0.96127559,1.0402844)" aria-label="&gt;">
+        <path id="path46" style="stroke-width:0.425088;stroke:none;fill:#f00700;fill-opacity:1"
+            d="m 14.191782,12.475827 -3.835751,-1.6688 V 8.4823296 l 6.127238,3.0221064 v 1.975993 l -6.127238,3.030409 V 14.18614 Z" />
+    </g>
+</svg>

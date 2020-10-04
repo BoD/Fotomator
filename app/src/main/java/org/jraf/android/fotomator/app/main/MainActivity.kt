@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.databinding.MainActivityBinding
-import org.jraf.android.fotomator.service.PhotoMonitoringService
+import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.util.log.Log
 
 class MainActivity : AppCompatActivity() {

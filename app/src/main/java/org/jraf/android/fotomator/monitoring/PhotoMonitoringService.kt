@@ -1,4 +1,4 @@
-package org.jraf.android.fotomator.service
+package org.jraf.android.fotomator.monitoring
 
 import android.app.Service
 import android.content.ContentUris
@@ -10,13 +10,18 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.BaseColumns
 import android.provider.MediaStore
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
+import org.jraf.android.fotomator.upload.SlackClient
 import org.jraf.android.util.log.Log
+import java.io.FileInputStream
 
 class PhotoMonitoringService : Service() {
     private val handler = Handler(Looper.getMainLooper())
+    private val slackClient = SlackClient()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -37,6 +42,7 @@ class PhotoMonitoringService : Service() {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 val mediaContentUri = getLatestContentFromMediaStore(mediaStoreUri)
                 Log.d("$mediaStoreUri has changed uri=$uri mediaContentUri=$mediaContentUri")
+                mediaContentUri?.let { uploadContent(it) }
             }
         }
     }
@@ -84,6 +90,34 @@ class PhotoMonitoringService : Service() {
     override fun onDestroy() {
         stopMonitoring()
         super.onDestroy()
+    }
+
+    private fun uploadContent(mediaContentUri: Uri) {
+        Log.d("mediaContentUri=$mediaContentUri")
+        val parcelFileDescriptor = contentResolver.openFileDescriptor(mediaContentUri, "r")
+        if (parcelFileDescriptor == null) {
+            Log.w("parcelFileDescriptor is null, give up")
+            return
+        }
+        GlobalScope.launch {
+            parcelFileDescriptor.use {
+                val ok = slackClient.uploadFile(fileInputStream = FileInputStream(it.fileDescriptor), "test")
+                Log.d("ok=$ok")
+            }
+        }
+
+//        val inputStream = contentResolver.openInputStream(mediaContentUri)
+//        if (inputStream == null) {
+//            Log.w("inputStream is null, give up")
+//            return
+//        }
+//        inputStream.use {
+//            GlobalScope.launch {
+//                val ok = slackClient.uploadFile(fileInputStream = it, "test")
+//                Log.d("ok=$ok")
+//            }
+//        }
+
     }
 
     companion object {

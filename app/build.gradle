@@ -46,6 +46,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'org.jraf:kprefs:1.4.0'
     implementation 'com.github.BoD:jraf-android-util:-SNAPSHOT'
+    implementation 'com.squareup.retrofit2:retrofit:2.6.4'
+    implementation 'com.squareup.retrofit2:converter-moshi:2.6.4'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
