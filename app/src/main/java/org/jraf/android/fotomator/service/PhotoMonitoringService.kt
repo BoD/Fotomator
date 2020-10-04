@@ -1,12 +1,14 @@
 package org.jraf.android.fotomator.service
 
 import android.app.Service
+import android.content.ContentUris
 import android.content.Intent
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.BaseColumns
 import android.provider.MediaStore
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
@@ -30,19 +32,18 @@ class PhotoMonitoringService : Service() {
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
-    private val internalMediaContentObserver = object : ContentObserver(handler) {
-        override fun onChange(selfChange: Boolean, uri: Uri?) {
-            val timestamp = readLastDateFromMediaStore(MediaStore.Images.Media.INTERNAL_CONTENT_URI)
-            Log.d("Internal Media has been changed uri=$uri timestamp=$timestamp")
+    private fun createContentObserver(mediaStoreUri: Uri): ContentObserver {
+        return object : ContentObserver(handler) {
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
+                val mediaContentUri = getLatestContentFromMediaStore(mediaStoreUri)
+                Log.d("$mediaStoreUri has changed uri=$uri mediaContentUri=$mediaContentUri")
+            }
         }
     }
 
-    private val externalMediaContentObserver = object : ContentObserver(handler) {
-        override fun onChange(selfChange: Boolean, uri: Uri?) {
-            val timestamp = readLastDateFromMediaStore(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            Log.d("External Media has been changed uri=$uri timestamp=$timestamp")
-        }
-    }
+    private val internalMediaContentObserver = createContentObserver(MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+
+    private val externalMediaContentObserver = createContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
     private fun startMonitoring() {
         Log.d()
@@ -69,14 +70,15 @@ class PhotoMonitoringService : Service() {
         contentResolver.unregisterContentObserver(externalMediaContentObserver)
     }
 
-    private fun readLastDateFromMediaStore(uri: Uri): Long {
-        val cursor = contentResolver.query(uri, null, null, null, "date_added DESC")!!
-        var res: Long = -1
+    private fun getLatestContentFromMediaStore(mediaStoreUri: Uri): Uri? {
+        Log.d("mediaStoreUri=$mediaStoreUri")
+        val cursor = contentResolver.query(mediaStoreUri, arrayOf(BaseColumns._ID), null, null, "${MediaStore.MediaColumns.DATE_ADDED} DESC")!!
+        var id: Long = -1L
         if (cursor.moveToNext()) {
-            res = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED))
+            id = cursor.getLong(0)
         }
         cursor.close()
-        return res
+        return if (id == -1L) null else ContentUris.withAppendedId(mediaStoreUri, id)
     }
 
     override fun onDestroy() {
