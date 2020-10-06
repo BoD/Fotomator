@@ -16,7 +16,7 @@ class SlackClient {
 
     private val service: SlackRetrofitService = createRetrofit().create(SlackRetrofitService::class.java)
 
-    suspend fun uploadFile(fileInputStream: InputStream, channels: String): Boolean {
+    suspend fun uploadFile(slackAuthToken: String, fileInputStream: InputStream, channels: String): Boolean {
         val part = MultipartBody.Part.createFormData(
             "file",
             "image",
@@ -27,7 +27,7 @@ class SlackClient {
         )
 
         val fileUploadResponse = service.filesUpload(
-            authorization = "Bearer TODO",
+            authorization = "Bearer $slackAuthToken",
             channels = channels,
             file = part
         )

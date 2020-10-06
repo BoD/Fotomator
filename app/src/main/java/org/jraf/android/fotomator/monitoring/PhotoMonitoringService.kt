@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
+import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.SlackClient
 import org.jraf.android.util.log.Log
 import java.io.FileInputStream
@@ -22,8 +23,14 @@ import java.io.FileInputStream
 class PhotoMonitoringService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private val slackClient = SlackClient()
+    private lateinit var appPrefs: AppPrefs
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        appPrefs = AppPrefs(this)
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground()
@@ -101,7 +108,11 @@ class PhotoMonitoringService : Service() {
         }
         GlobalScope.launch {
             parcelFileDescriptor.use {
-                val ok = slackClient.uploadFile(fileInputStream = FileInputStream(it.fileDescriptor), "test")
+                val ok = slackClient.uploadFile(
+                    fileInputStream = FileInputStream(it.fileDescriptor),
+                    channels = "test",
+                    slackAuthToken = appPrefs.slackAuthToken!!
+                )
                 Log.d("ok=$ok")
             }
         }
