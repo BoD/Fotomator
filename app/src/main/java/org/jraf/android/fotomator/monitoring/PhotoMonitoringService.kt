@@ -101,34 +101,37 @@ class PhotoMonitoringService : Service() {
 
     private fun uploadContent(mediaContentUri: Uri) {
         Log.d("mediaContentUri=$mediaContentUri")
-        val parcelFileDescriptor = contentResolver.openFileDescriptor(mediaContentUri, "r")
-        if (parcelFileDescriptor == null) {
-            Log.w("parcelFileDescriptor is null, give up")
+//        val parcelFileDescriptor = contentResolver.openFileDescriptor(mediaContentUri, "r")
+//        if (parcelFileDescriptor == null) {
+//            Log.w("parcelFileDescriptor is null, give up")
+//            return
+//        }
+//        GlobalScope.launch {
+//            parcelFileDescriptor.use {
+//                val ok = slackClient.uploadFile(
+//                    fileInputStream = FileInputStream(it.fileDescriptor),
+//                    channels = "test",
+//                    slackAuthToken = appPrefs.slackAuthToken!!
+//                )
+//                Log.d("ok=$ok")
+//            }
+//        }
+
+        val inputStream = contentResolver.openInputStream(mediaContentUri)
+        if (inputStream == null) {
+            Log.w("inputStream is null, give up")
             return
         }
         GlobalScope.launch {
-            parcelFileDescriptor.use {
+            inputStream.use {
                 val ok = slackClient.uploadFile(
-                    fileInputStream = FileInputStream(it.fileDescriptor),
+                    fileInputStream = it,
                     channels = "test",
                     slackAuthToken = appPrefs.slackAuthToken!!
                 )
                 Log.d("ok=$ok")
             }
         }
-
-//        val inputStream = contentResolver.openInputStream(mediaContentUri)
-//        if (inputStream == null) {
-//            Log.w("inputStream is null, give up")
-//            return
-//        }
-//        inputStream.use {
-//            GlobalScope.launch {
-//                val ok = slackClient.uploadFile(fileInputStream = it, "test")
-//                Log.d("ok=$ok")
-//            }
-//        }
-
     }
 
     companion object {
