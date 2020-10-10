@@ -181,18 +181,6 @@ class PhotoMonitoringService : Service() {
             )
         }
 
-//        val inputStream = contentResolver.openInputStream(Uri.parse(media.uri))
-//        if (inputStream == null) {
-//            Log.w("inputStream is null, give up")
-//            return
-//        }
-//        val ok = inputStream.use {
-//            slackClient.uploadFile(
-//                fileInputStream = it,
-//                channels = "test",
-//            )
-//        }
-
         Log.d("ok=$ok")
         database.mediaDao().insert(Media(uri = mediaContentUri.toString(), uploadState = if (ok) MediaUploadState.UPLOADED else MediaUploadState.PENDING))
     }
