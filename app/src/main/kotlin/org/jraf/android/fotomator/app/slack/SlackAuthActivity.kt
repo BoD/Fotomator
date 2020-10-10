@@ -40,6 +40,7 @@ import org.jraf.android.util.string.StringUtil
 class SlackAuthActivity : AppCompatActivity() {
     private val viewModel: SlackAuthViewModel by viewModels()
     private lateinit var binding: SlackAuthActivityBinding
+    private var fromNewIntent: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +63,7 @@ class SlackAuthActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         Log.d("intent=${StringUtil.toString(intent)}")
+        fromNewIntent = true
         val redirectUri = intent.data
         if (redirectUri == null) {
             Log.e("redirectUri is null, this should never happen")
@@ -69,5 +71,14 @@ class SlackAuthActivity : AppCompatActivity() {
             return
         }
         viewModel.handleRedirectUri(redirectUri)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (!fromNewIntent) {
+            viewModel.setLoading(false)
+        }
+        fromNewIntent = false
+        Log.d()
     }
 }

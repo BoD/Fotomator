@@ -102,10 +102,10 @@ class SlackAuthViewModel @ViewModelInject constructor(
         }
     }
 
-    private fun setLoading(loading: Boolean) {
-        isLoadingVisible.value = loading
-        isStartSlackAuthButtonVisible.value = !loading
-    }
+     fun setLoading(loading: Boolean) {
+         isLoadingVisible.value = loading
+         isStartSlackAuthButtonVisible.value = !loading
+     }
 
     private fun showToast(@StringRes resId: Int) {
         toast.value = resId
