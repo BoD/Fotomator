@@ -24,19 +24,32 @@
  */
 package org.jraf.android.fotomator.hilt
 
+import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.AuthTokenProvider
 import org.jraf.android.fotomator.upload.SlackClient
+import javax.inject.Singleton
 
 @Module
 @InstallIn(ApplicationComponent::class)
 object AppModule {
     @Provides
+    @Singleton
     fun provideSlackClient(appPrefs: AppPrefs) = SlackClient(object : AuthTokenProvider {
         override fun getAuthToken() = appPrefs.slackAuthToken!!
     })
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext applicationContext: Context) = Room.databaseBuilder(
+        applicationContext,
+        Database::class.java, "database.db"
+    ).build()
 }
