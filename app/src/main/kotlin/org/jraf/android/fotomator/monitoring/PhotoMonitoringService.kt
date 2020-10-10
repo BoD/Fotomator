@@ -102,12 +102,12 @@ class PhotoMonitoringService : Service() {
 
         contentResolver.registerContentObserver(
             MediaStore.Images.Media.INTERNAL_CONTENT_URI,
-            false,
+            true,
             internalMediaContentObserver
         )
         contentResolver.registerContentObserver(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            false,
+            true,
             externalMediaContentObserver
         )
     }
