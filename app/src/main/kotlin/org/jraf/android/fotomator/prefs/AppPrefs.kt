@@ -26,9 +26,13 @@ package org.jraf.android.fotomator.prefs
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.qualifiers.ApplicationContext
 import org.jraf.android.kprefs.Prefs
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppPrefs(context: Context) {
+@Singleton
+class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
     private val prefs = Prefs(context)
 
     val isServiceEnabled: MutableLiveData<Boolean> by prefs.BooleanLiveData(false)

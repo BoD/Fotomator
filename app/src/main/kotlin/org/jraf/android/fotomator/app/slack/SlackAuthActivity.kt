@@ -30,11 +30,13 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.databinding.SlackAuthActivityBinding
 import org.jraf.android.util.log.Log
 import org.jraf.android.util.string.StringUtil
 
+@AndroidEntryPoint
 class SlackAuthActivity : AppCompatActivity() {
     private val viewModel: SlackAuthViewModel by viewModels()
     private lateinit var binding: SlackAuthActivityBinding

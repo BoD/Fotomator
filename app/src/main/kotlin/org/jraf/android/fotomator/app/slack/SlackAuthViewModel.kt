@@ -28,8 +28,9 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.lifecycle.AndroidViewModel
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -38,13 +39,15 @@ import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.SlackClient
 import org.jraf.android.util.log.Log
 
-class SlackAuthViewModel(application: Application) : AndroidViewModel(application) {
-    private val slackClient = SlackClient()
-    private val prefs = AppPrefs(application)
+class SlackAuthViewModel @ViewModelInject constructor(
+    private val application: Application,
+    private val prefs: AppPrefs,
+    private val slackClient: SlackClient
+) : ViewModel() {
 
     val isLoadingVisible = MutableLiveData(false)
     val isStartSlackAuthButtonVisible = MutableLiveData(true)
-    val toast = MutableLiveData<Int>()
+    val toast = MutableLiveData<Int?>()
     val finish = MutableLiveData<Unit>()
 
     fun checkForToken() {
@@ -57,8 +60,9 @@ class SlackAuthViewModel(application: Application) : AndroidViewModel(applicatio
         Log.d()
         setLoading(true)
         prefs.slackAuthToken = null
-        getApplication<Application>().startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(SlackClient.SLACK_APP_AUTHORIZE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        application.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(SlackClient.SLACK_APP_AUTHORIZE_URL))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
 

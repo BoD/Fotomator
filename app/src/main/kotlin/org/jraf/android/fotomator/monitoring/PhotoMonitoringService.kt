@@ -34,28 +34,27 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.BaseColumns
 import android.provider.MediaStore
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
-import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.SlackClient
 import org.jraf.android.util.log.Log
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PhotoMonitoringService : Service() {
     private val handler = Handler(Looper.getMainLooper())
-    private val slackClient = SlackClient()
-    private lateinit var appPrefs: AppPrefs
+
+    @Inject
+    lateinit var slackClient: SlackClient
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onCreate() {
-        super.onCreate()
-        appPrefs = AppPrefs(this)
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("isStarted=$isStarted")
         startForeground()
         startMonitoring()
         return START_STICKY
@@ -82,10 +81,10 @@ class PhotoMonitoringService : Service() {
     private val externalMediaContentObserver = createContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
     private fun startMonitoring() {
-        Log.d()
+        Log.d("isStarted=$isStarted")
 
-        if (isMonitoring) return
-        isMonitoring = true
+        if (isStarted) return
+        isStarted = true
 
         contentResolver.registerContentObserver(
             MediaStore.Images.Media.INTERNAL_CONTENT_URI,
@@ -101,7 +100,6 @@ class PhotoMonitoringService : Service() {
 
     private fun stopMonitoring() {
         Log.d()
-        isMonitoring = false
         contentResolver.unregisterContentObserver(internalMediaContentObserver)
         contentResolver.unregisterContentObserver(externalMediaContentObserver)
     }
@@ -115,11 +113,6 @@ class PhotoMonitoringService : Service() {
         }
         cursor.close()
         return if (id == -1L) null else ContentUris.withAppendedId(mediaStoreUri, id)
-    }
-
-    override fun onDestroy() {
-        stopMonitoring()
-        super.onDestroy()
     }
 
     private fun uploadContent(mediaContentUri: Uri) {
@@ -150,14 +143,20 @@ class PhotoMonitoringService : Service() {
                 val ok = slackClient.uploadFile(
                     fileInputStream = it,
                     channels = "test",
-                    slackAuthToken = appPrefs.slackAuthToken!!
                 )
                 Log.d("ok=$ok")
             }
         }
     }
 
+    override fun onDestroy() {
+        Log.d("isStarted=$isStarted")
+        isStarted = false
+        stopMonitoring()
+        super.onDestroy()
+    }
+
     companion object {
-        var isMonitoring: Boolean = false
+        var isStarted: Boolean = false
     }
 }

@@ -14,9 +14,9 @@ object Versions {
     const val ANDROIDX_ROOM = "2.2.5"
     const val ANDROIDX_WORK_MANAGER = "2.4.0"
     const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.2"
-    const val DAGGER = "2.29.1"
+    const val ANDROIDX_HILT = "1.0.0-alpha02"
+    const val HILT = "2.29.1-alpha"
     const val KPREFS = "1.4.0"
-    const val JSR_250 = "1.0"
     const val RETROFIT = "2.9.0"
     const val MOSHI = "1.11.0"
     const val MATERIAL = "1.2.1"
@@ -30,7 +30,7 @@ object AppConfig {
     const val APPLICATION_ID = "org.jraf.android.fotomator"
     const val COMPILE_SDK = 30
     const val TARGET_SDK = 30
-    const val MIN_SDK = 25
+    const val MIN_SDK = 23
 
     var buildNumber: Int = 0
     val buildProperties = mutableMapOf<String, String>()

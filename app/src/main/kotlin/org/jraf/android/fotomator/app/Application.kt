@@ -22,16 +22,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.main
+package org.jraf.android.fotomator.app
 
-import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import org.jraf.android.fotomator.prefs.AppPrefs
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+import org.jraf.android.fotomator.BuildConfig
+import org.jraf.android.util.log.Log
 
-class MainViewModel @ViewModelInject constructor(
-    private val prefs: AppPrefs
-) : ViewModel() {
-    val isServiceEnabled: MutableLiveData<Boolean> = prefs.isServiceEnabled
-    val slackAuthToken: String? get() = prefs.slackAuthToken
+@HiltAndroidApp
+class Application : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        // Log
+        Log.init(this, LOG_TAG, BuildConfig.DEBUG)
+    }
+
+    companion object {
+        private const val LOG_TAG = "Fotomator"
+    }
 }

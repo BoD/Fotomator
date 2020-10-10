@@ -34,12 +34,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.slack.SlackAuthActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.util.log.Log
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: MainActivityBinding
@@ -114,14 +116,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startPhotoMonitoringService() {
-        if (!PhotoMonitoringService.isMonitoring) {
+        if (!PhotoMonitoringService.isStarted) {
             Toast.makeText(this, R.string.main_service_toast_enabled, Toast.LENGTH_LONG).show()
             startService(Intent(this, PhotoMonitoringService::class.java))
         }
     }
 
     private fun stopPhotoMonitoringService() {
-        if (PhotoMonitoringService.isMonitoring) {
+        if (PhotoMonitoringService.isStarted) {
             Toast.makeText(this, R.string.main_service_toast_disabled, Toast.LENGTH_LONG).show()
             stopService(Intent(this, PhotoMonitoringService::class.java))
         }

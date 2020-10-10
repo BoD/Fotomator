@@ -32,7 +32,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.InputStream
 
-class SlackClient {
+class SlackClient(private val authTokenProvider: AuthTokenProvider) {
     private fun createRetrofit(): Retrofit = Retrofit.Builder()
         .baseUrl(SLACK_BASE_URI)
         .addConverterFactory(MoshiConverterFactory.create())
@@ -40,7 +40,7 @@ class SlackClient {
 
     private val service: SlackRetrofitService = createRetrofit().create(SlackRetrofitService::class.java)
 
-    suspend fun uploadFile(slackAuthToken: String, fileInputStream: InputStream, channels: String): Boolean {
+    suspend fun uploadFile(fileInputStream: InputStream, channels: String): Boolean {
         val part = MultipartBody.Part.createFormData(
             "file",
             "image",
@@ -51,7 +51,7 @@ class SlackClient {
         )
 
         val fileUploadResponse = service.filesUpload(
-            authorization = "Bearer $slackAuthToken",
+            authorization = getAuthorizationHeader(),
             channels = channels,
             file = part
         )
@@ -67,6 +67,8 @@ class SlackClient {
         if (!oauthAccessResponse.ok) return null
         return oauthAccessResponse.authedUser?.accessToken
     }
+
+    private fun getAuthorizationHeader() = "Bearer ${authTokenProvider.getAuthToken()}"
 
     companion object {
         private const val SLACK_BASE_URI = "https://slack.com/api/"

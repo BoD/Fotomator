@@ -22,16 +22,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.main
+package org.jraf.android.fotomator.hilt
 
-import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ApplicationComponent
 import org.jraf.android.fotomator.prefs.AppPrefs
+import org.jraf.android.fotomator.upload.AuthTokenProvider
+import org.jraf.android.fotomator.upload.SlackClient
 
-class MainViewModel @ViewModelInject constructor(
-    private val prefs: AppPrefs
-) : ViewModel() {
-    val isServiceEnabled: MutableLiveData<Boolean> = prefs.isServiceEnabled
-    val slackAuthToken: String? get() = prefs.slackAuthToken
+@Module
+@InstallIn(ApplicationComponent::class)
+object AppModule {
+    @Provides
+    fun provideSlackClient(appPrefs: AppPrefs) = SlackClient(object : AuthTokenProvider {
+        override fun getAuthToken() = appPrefs.slackAuthToken!!
+    })
 }

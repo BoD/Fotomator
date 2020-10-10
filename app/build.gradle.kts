@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -131,6 +132,8 @@ dependencies {
     implementation("androidx.room", "room-ktx", Versions.ANDROIDX_ROOM)
     implementation("androidx.constraintlayout", "constraintlayout", Versions.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation("androidx.work", "work-runtime-ktx", Versions.ANDROIDX_WORK_MANAGER)
+    implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT)
+    kapt("androidx.hilt", "hilt-compiler", Versions.ANDROIDX_HILT)
 
     // Material
     implementation("com.google.android.material", "material", Versions.MATERIAL)
@@ -145,11 +148,9 @@ dependencies {
     implementation("com.squareup.moshi", "moshi", Versions.MOSHI)
     kapt("com.squareup.moshi", "moshi-kotlin-codegen", Versions.MOSHI)
 
-    // Dagger
-    implementation("com.google.dagger", "dagger", Versions.DAGGER)
-    kapt("com.google.dagger", "dagger-compiler", Versions.DAGGER)
-    compileOnly("javax.annotation", "jsr250-api", Versions.JSR_250)
-
+    // Hilt
+    implementation("com.google.dagger", "hilt-android", Versions.HILT)
+    kapt("com.google.dagger", "hilt-compiler", Versions.HILT)
 
     // Testing
     androidTestImplementation("androidx.test.espresso", "espresso-core", Versions.ESPRESSO) {

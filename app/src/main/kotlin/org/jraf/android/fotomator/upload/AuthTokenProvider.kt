@@ -22,21 +22,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.main
+package org.jraf.android.fotomator.upload
 
-import android.app.Application
-import org.jraf.android.fotomator.BuildConfig
-import org.jraf.android.util.log.Log
+typealias AuthToken = String
 
-class Application : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        // Log
-        Log.init(this, LOG_TAG, BuildConfig.DEBUG)
-    }
-
-    companion object {
-        private const val LOG_TAG = "Fotomator"
-    }
+interface AuthTokenProvider {
+    fun getAuthToken(): AuthToken
 }
