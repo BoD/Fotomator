@@ -36,7 +36,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
-import org.jraf.android.fotomator.upload.SlackClient
+import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.util.log.Log
 
 class SlackAuthViewModel @ViewModelInject constructor(

@@ -36,7 +36,6 @@ import android.provider.BaseColumns
 import android.provider.MediaStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -46,10 +45,8 @@ import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
-import org.jraf.android.fotomator.upload.SlackClient
+import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
 import org.jraf.android.util.log.Log
-import java.io.FileInputStream
-import java.io.FileNotFoundException
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -58,7 +55,7 @@ class PhotoMonitoringService : Service() {
     private val mutex = Mutex()
 
     @Inject
-    lateinit var slackClient: SlackClient
+    lateinit var uploadScheduler: UploadScheduler
 
     @Inject
     lateinit var database: Database
@@ -81,9 +78,9 @@ class PhotoMonitoringService : Service() {
     private fun createContentObserver(mediaStoreUri: Uri): ContentObserver {
         return object : ContentObserver(mainHandler) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
-                val mediaContentUri = getLatestContentFromMediaStore(mediaStoreUri)
-                Log.d("$mediaStoreUri has changed uri=$uri mediaContentUri=$mediaContentUri")
-                if (mediaContentUri != null) handleMedia(mediaContentUri)
+                val mediaUri = getLatestContentFromMediaStore(mediaStoreUri)
+                Log.d("$mediaStoreUri has changed uri=$uri mediaUri=$mediaUri")
+                if (mediaUri != null) handleMedia(mediaUri)
             }
         }
     }
@@ -140,49 +137,21 @@ class PhotoMonitoringService : Service() {
         return if (id == -1L) null else ContentUris.withAppendedId(mediaStoreUri, id)
     }
 
-    private fun handleMedia(mediaContentUri: Uri) = GlobalScope.launch {
+    private fun handleMedia(mediaUri: Uri) = GlobalScope.launch {
         val allReadyKnown = mutex.withLock {
-            val mediaContentUriStr = mediaContentUri.toString()
-            val foundMedia = database.mediaDao().getByUrl(mediaContentUriStr)
+            val mediaUriStr = mediaUri.toString()
+            val foundMedia = database.mediaDao().getByUrl(mediaUriStr)
             if (foundMedia != null) {
-                Log.d("Media $mediaContentUriStr already known: ignore")
+                Log.d("Media $mediaUriStr already known: ignore")
                 true
             } else {
-                Log.d("Media $mediaContentUriStr not known: upload")
-                val media = Media(uri = mediaContentUriStr, uploadState = MediaUploadState.UPLOADING)
+                Log.d("Media $mediaUriStr not known: schedule")
+                val media = Media(uri = mediaUriStr, uploadState = MediaUploadState.SCHEDULED)
                 database.mediaDao().insert(media)
                 false
             }
         }
-        if (!allReadyKnown) uploadContent(mediaContentUri)
-    }
-
-    private suspend fun uploadContent(mediaContentUri: Uri) {
-        Log.d("mediaContentUri=$mediaContentUri")
-
-        // XXX Add a few seconds delay because for some reason the file may not be ready when called immediately
-        delay(2000)
-
-        val parcelFileDescriptor = try {
-            contentResolver.openFileDescriptor(mediaContentUri, "r")
-        } catch (e: FileNotFoundException) {
-            Log.w("openFileDescriptor threw an exception for mediaContentUri=$mediaContentUri", e)
-            null
-        }
-        if (parcelFileDescriptor == null) {
-            Log.w("parcelFileDescriptor is null, give up")
-            database.mediaDao().insert(Media(uri = mediaContentUri.toString(), uploadState = MediaUploadState.ERROR))
-            return
-        }
-        val ok = parcelFileDescriptor.use {
-            slackClient.uploadFile(
-                fileInputStream = FileInputStream(it.fileDescriptor),
-                channels = "test"
-            )
-        }
-
-        Log.d("ok=$ok")
-        database.mediaDao().insert(Media(uri = mediaContentUri.toString(), uploadState = if (ok) MediaUploadState.UPLOADED else MediaUploadState.PENDING))
+        if (!allReadyKnown) uploadScheduler.addToSchedule(mediaUri)
     }
 
     override fun onDestroy() {

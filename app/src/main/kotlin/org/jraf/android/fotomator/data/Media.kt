@@ -30,11 +30,12 @@ import androidx.room.PrimaryKey
 @Entity
 data class Media(
     @PrimaryKey val uri: String,
-    val uploadState: MediaUploadState
+    val uploadState: MediaUploadState,
+    val uploadFailedCount: Int = 0,
 )
 
 enum class MediaUploadState(val dbValue: Int) {
-    PENDING(0),
+    SCHEDULED(0),
     UPLOADING(1),
     UPLOADED(2),
     OPT_OUT(3),

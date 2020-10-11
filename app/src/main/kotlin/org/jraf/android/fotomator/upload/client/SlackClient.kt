@@ -22,12 +22,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload
+package org.jraf.android.fotomator.upload.client
 
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import org.jraf.android.fotomator.upload.retrofit.SlackRetrofitService
+import org.jraf.android.fotomator.upload.client.retrofit.SlackRetrofitService
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.InputStream

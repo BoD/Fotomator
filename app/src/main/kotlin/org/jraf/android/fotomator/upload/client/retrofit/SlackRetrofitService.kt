@@ -22,11 +22,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.retrofit
+package org.jraf.android.fotomator.upload.client.retrofit
 
 import okhttp3.MultipartBody
-import org.jraf.android.fotomator.upload.retrofit.apimodels.response.FileUploadResponse
-import org.jraf.android.fotomator.upload.retrofit.apimodels.response.OauthAccessResponse
+import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.FileUploadResponse
+import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.OauthAccessResponse
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
