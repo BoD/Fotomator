@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="@={viewModel.isServiceEnabled}"
-            android:text="@string/main_serviceEnabled_switch"
+            android:text="@{viewModel.isServiceEnabled ? @string/main_service_switch_enabled : @string/main_service_switch_disabled}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

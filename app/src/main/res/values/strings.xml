@@ -1,18 +1,22 @@
 <resources>
     <string name="app_name">Fotomator</string>
-    <string name="notification_service_title">Photomator is running</string>
-    <string name="notification_service_text">New photos will automatically be posted</string>
+
     <string name="notification_channel_main_name">Main channel</string>
     <string name="notification_channel_main_description">Main channel</string>
-    <string name="main_serviceEnabled_switch">Enable Photomator</string>
-    <string name="main_service_toast_enabled">Photomator is now running</string>
-    <string name="main_service_toast_disabled">Photomator is no longer running</string>
+
+    <string name="notification_service_title">Fotomator is ON</string>
+    <string name="notification_service_text">New photos will automatically be posted</string>
+    <string name="notification_service_action_stop">Stop Fotomator</string>
+
+    <string name="main_service_switch_enabled">Fotomator is ON</string>
+    <string name="main_service_switch_disabled">Fotomator is off</string>
+    <string name="main_service_toast_enabled">Fotomator is ON</string>
+    <string name="main_service_toast_disabled">Fotomator is off</string>
     <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
     <string name="slack_auth_button">Start Slack authentication</string>
     <string name="slack_auth_success">Slack authentication successful</string>
-    <string name="notification_service_action_stop">Stop monitoring photos</string>
     <string name="notification_scheduled_title">New photo</string>
-    <string name="notification_scheduled_text">This photo will automatically be posted in %1$s</string>
+    <string name="notification_scheduled_text">This photo will be posted in %1$s</string>
     <plurals name="notification_scheduled_text_delay">
         <item quantity="one">%1$s minute</item>
         <item quantity="other">%1$s minutes</item>

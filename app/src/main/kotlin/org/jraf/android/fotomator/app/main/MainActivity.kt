@@ -27,6 +27,7 @@ package org.jraf.android.fotomator.app.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -119,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         if (!PhotoMonitoringService.isStarted) {
             Toast.makeText(this, R.string.main_service_toast_enabled, Toast.LENGTH_LONG).show()
             val serviceIntent = Intent(this, PhotoMonitoringService::class.java)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(serviceIntent)
             } else {
                 startService(serviceIntent)

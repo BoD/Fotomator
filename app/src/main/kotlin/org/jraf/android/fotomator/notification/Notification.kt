@@ -37,7 +37,10 @@ import androidx.core.app.NotificationManagerCompat
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.main.MainActivity
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
+import org.jraf.android.fotomator.util.loadBitmapFromUri
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
+
 
 const val NOTIFICATION_CHANNEL_MAIN = "NOTIFICATION_CHANNEL_MAIN"
 
@@ -50,7 +53,7 @@ fun createNotificationChannel(context: Context) {
         context.getString(R.string.notification_channel_main_name),
         NotificationManager.IMPORTANCE_DEFAULT
     ).apply {
-        this.description = context.getString(R.string.notification_channel_main_description)
+        description = context.getString(R.string.notification_channel_main_description)
         setSound(null, null)
     }
     val notificationManager = NotificationManagerCompat.from(context)
@@ -66,12 +69,14 @@ fun createPhotoMonitoringServiceNotification(context: Context): Notification {
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(context.getString(R.string.notification_service_title))
+        .setColor(context.getColor(R.color.colorAccent))
+        .setPriority(NotificationCompat.PRIORITY_LOW)
         .addAction(
             R.drawable.ic_stop_service_24,
             context.getString(R.string.notification_service_action_stop),
             PendingIntent.getBroadcast(
                 context,
-                0,
+                uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_STOP_SERVICE),
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
@@ -85,6 +90,9 @@ fun createPhotoScheduledNotification(
     scheduledTaskDelayMs: Long
 ): Notification {
     val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+
+    val title = context.getString(R.string.notification_scheduled_title)
+
     val delayMinutes = TimeUnit.MILLISECONDS.toMinutes(scheduledTaskDelayMs)
     val delayMinutesStr = context.resources.getQuantityString(
         R.plurals.notification_scheduled_text_delay,
@@ -92,22 +100,34 @@ fun createPhotoScheduledNotification(
     )
     val text = context.getString(R.string.notification_scheduled_text, delayMinutesStr)
 
+    val photoBitmap = loadBitmapFromUri(context, mediaUri)
+
+    val bigPictureStyle = NotificationCompat.BigPictureStyle()
+        .bigPicture(photoBitmap)
+        .bigLargeIcon(null)
+        .setBigContentTitle(title)
+        .setSummaryText(text)
+
     // TODO group notifications
     // See https://developer.android.com/training/notify-user/group
 
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
-        .setContentTitle(context.getString(R.string.notification_scheduled_title))
+        .setStyle(bigPictureStyle)
+        .setContentTitle(title)
         .setContentText(text)
         .setSmallIcon(R.drawable.ic_notification_24)
+        .setLargeIcon(photoBitmap)
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
-        .setTicker(context.getString(R.string.notification_scheduled_title))
+        .setTicker(title)
+        .setColor(context.getColor(R.color.colorAccent))
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
         .addAction(
             R.drawable.ic_opt_out_24,
             context.getString(R.string.notification_scheduled_action_optOut),
             PendingIntent.getBroadcast(
                 context,
-                0,
+                uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_OPT_OUT)
                     .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
                 PendingIntent.FLAG_UPDATE_CURRENT
@@ -118,7 +138,7 @@ fun createPhotoScheduledNotification(
             context.getString(R.string.notification_scheduled_action_uploadImmediately),
             PendingIntent.getBroadcast(
                 context,
-                0,
+                uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_UPLOAD_IMMEDIATELY)
                     .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
                 PendingIntent.FLAG_UPDATE_CURRENT
@@ -127,3 +147,5 @@ fun createPhotoScheduledNotification(
         .setOngoing(true)
         .build()
 }
+
+fun uniqueRequestCode() = Random.nextInt()

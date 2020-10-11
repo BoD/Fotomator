@@ -39,6 +39,7 @@ import android.provider.BaseColumns
 import android.provider.MediaStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -51,6 +52,7 @@ import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotif
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
 import org.jraf.android.util.log.Log
+import org.jraf.android.util.string.StringUtil
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -161,6 +163,11 @@ class PhotoMonitoringService : Service() {
                 false
             }
         }
+
+        // XXX Add a small delay to ensure the media is ready to be read
+        // Not 100% sure why this is needed
+        delay(2000)
+
         if (!allReadyKnown) uploadScheduler.addToSchedule(mediaUri)
     }
 
@@ -168,6 +175,7 @@ class PhotoMonitoringService : Service() {
         Log.d()
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                Log.d("intent=${StringUtil.toString(intent)}")
                 when (intent.action) {
                     ACTION_STOP_SERVICE -> {
                         appPrefs.isServiceEnabled.value = false
