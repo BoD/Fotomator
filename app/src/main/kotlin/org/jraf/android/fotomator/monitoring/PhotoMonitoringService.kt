@@ -48,6 +48,7 @@ import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.ONGOING_NOTIFICATION_ID
 import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
+import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
 import org.jraf.android.util.log.Log
 import javax.inject.Inject
@@ -63,6 +64,9 @@ class PhotoMonitoringService : Service() {
 
     @Inject
     lateinit var database: Database
+
+    @Inject
+    lateinit var appPrefs: AppPrefs
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -164,9 +168,14 @@ class PhotoMonitoringService : Service() {
         Log.d()
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val mediaUri = intent.data!!
                 when (intent.action) {
+                    ACTION_STOP_SERVICE -> {
+                        appPrefs.isServiceEnabled.value = false
+                        stopSelf()
+                    }
+
                     ACTION_OPT_OUT -> {
+                        val mediaUri: Uri = intent.getParcelableExtra(EXTRA_MEDIA_URI)!!
                         val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.OPT_OUT)
                         GlobalScope.launch {
                             database.mediaDao().insert(media)
@@ -175,6 +184,7 @@ class PhotoMonitoringService : Service() {
                     }
 
                     ACTION_UPLOAD_IMMEDIATELY -> {
+                        val mediaUri: Uri = intent.getParcelableExtra(EXTRA_MEDIA_URI)!!
                         uploadScheduler.uploadImmediately(mediaUri)
                     }
                 }
@@ -182,9 +192,9 @@ class PhotoMonitoringService : Service() {
         }
 
         registerReceiver(broadcastReceiver, IntentFilter().apply {
+            addAction(ACTION_STOP_SERVICE)
             addAction(ACTION_OPT_OUT)
             addAction(ACTION_UPLOAD_IMMEDIATELY)
-            addDataType("*/*")
         })
     }
 
@@ -204,7 +214,9 @@ class PhotoMonitoringService : Service() {
     companion object {
         var isStarted: Boolean = false
 
+        const val ACTION_STOP_SERVICE = "ACTION_STOP_SERVICE"
         const val ACTION_OPT_OUT = "ACTION_OPT_OUT"
         const val ACTION_UPLOAD_IMMEDIATELY = "ACTION_UPLOAD_IMMEDIATELY"
+        const val EXTRA_MEDIA_URI = "EXTRA_MEDIA_URI"
     }
 }

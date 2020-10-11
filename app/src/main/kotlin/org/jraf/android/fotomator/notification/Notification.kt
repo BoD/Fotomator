@@ -58,7 +58,7 @@ fun createNotificationChannel(context: Context) {
 }
 
 fun createPhotoMonitoringServiceNotification(context: Context): Notification {
-    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
+    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
         .setContentTitle(context.getString(R.string.notification_service_title))
         .setContentText(context.getString(R.string.notification_service_text))
@@ -69,8 +69,12 @@ fun createPhotoMonitoringServiceNotification(context: Context): Notification {
         .addAction(
             R.drawable.ic_stop_service_24,
             context.getString(R.string.notification_service_action_stop),
-            // TODO Make this button actually do something
-            PendingIntent.getBroadcast(context, 0, Intent(), PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                Intent(PhotoMonitoringService.ACTION_STOP_SERVICE),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
         )
         .build()
 }
@@ -80,13 +84,17 @@ fun createPhotoScheduledNotification(
     mediaUri: Uri,
     scheduledTaskDelayMs: Long
 ): Notification {
-    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
+    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
     val delayMinutes = TimeUnit.MILLISECONDS.toMinutes(scheduledTaskDelayMs)
     val delayMinutesStr = context.resources.getQuantityString(
         R.plurals.notification_scheduled_text_delay,
         delayMinutes.toInt(), delayMinutes
     )
     val text = context.getString(R.string.notification_scheduled_text, delayMinutesStr)
+
+    // TODO group notifications
+    // See https://developer.android.com/training/notify-user/group
+
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
         .setContentTitle(context.getString(R.string.notification_scheduled_title))
         .setContentText(text)
@@ -97,12 +105,24 @@ fun createPhotoScheduledNotification(
         .addAction(
             R.drawable.ic_opt_out_24,
             context.getString(R.string.notification_scheduled_action_optOut),
-            PendingIntent.getBroadcast(context, 0, Intent(PhotoMonitoringService.ACTION_OPT_OUT, mediaUri), PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                Intent(PhotoMonitoringService.ACTION_OPT_OUT)
+                    .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
         )
         .addAction(
             R.drawable.ic_upload_immediately_24,
             context.getString(R.string.notification_scheduled_action_uploadImmediately),
-            PendingIntent.getBroadcast(context, 0, Intent(PhotoMonitoringService.ACTION_UPLOAD_IMMEDIATELY, mediaUri), PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                Intent(PhotoMonitoringService.ACTION_UPLOAD_IMMEDIATELY)
+                    .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
         )
         .setOngoing(true)
         .build()
