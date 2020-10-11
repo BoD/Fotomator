@@ -118,7 +118,12 @@ class MainActivity : AppCompatActivity() {
     private fun startPhotoMonitoringService() {
         if (!PhotoMonitoringService.isStarted) {
             Toast.makeText(this, R.string.main_service_toast_enabled, Toast.LENGTH_LONG).show()
-            startService(Intent(this, PhotoMonitoringService::class.java))
+            val serviceIntent = Intent(this, PhotoMonitoringService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
         }
     }
 

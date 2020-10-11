@@ -10,4 +10,5 @@
     <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
     <string name="slack_auth_button">Start Slack authentication</string>
     <string name="slack_auth_success">Slack authentication successful</string>
+    <string name="notification_service_action_stop">Stop monitoring photos</string>
 </resources>

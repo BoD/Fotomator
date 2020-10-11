@@ -62,5 +62,11 @@ fun createPhotoMonitoringServiceNotification(context: Context): Notification {
         .setContentIntent(pendingIntent)
         .setShowWhen(false)
         .setTicker(context.getString(R.string.photoMonitoringService_notification_title))
+        .addAction(
+            R.drawable.ic_stop_service_24,
+            context.getString(R.string.notification_service_action_stop),
+            // TODO Make this button actually do something
+            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+        )
         .build()
 }
