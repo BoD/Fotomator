@@ -28,6 +28,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.data.Media
@@ -78,7 +80,23 @@ class UploadScheduler @Inject constructor(
         Log.d("mediaUri=$mediaUri")
         val previousValue = scheduledTasks.remove(mediaUri)
         previousValue?.cancel(true)
+        hideScheduledNotification(mediaUri)
         return previousValue != null
+    }
+
+    fun removeAllFromSchedule() {
+        Log.d()
+        // TODO
+    }
+
+    fun uploadImmediately(mediaUri: Uri) {
+        Log.d("mediaUri=$mediaUri")
+        val previousValue = scheduledTasks.remove(mediaUri)
+        previousValue?.cancel(true)
+
+        GlobalScope.launch {
+            uploadContent(mediaUri)
+        }
     }
 
     private suspend fun uploadContent(mediaUri: Uri) {
@@ -88,7 +106,7 @@ class UploadScheduler @Inject constructor(
         hideScheduledNotification(mediaUri)
 
         // Update the db
-        val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.SCHEDULED)
+        val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.UPLOADING)
         database.mediaDao().insert(media)
 
         val parcelFileDescriptor = try {
@@ -143,7 +161,7 @@ class UploadScheduler @Inject constructor(
 
     private fun showScheduledNotification(mediaUri: Uri, delayMs: Long) {
         Log.d("mediaUri=$mediaUri")
-        val notification = createPhotoScheduledNotification(context, delayMs)
+        val notification = createPhotoScheduledNotification(context, mediaUri, delayMs)
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(mediaUri.toNotificationId(), notification)
     }

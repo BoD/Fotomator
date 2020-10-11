@@ -30,11 +30,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.main.MainActivity
+import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import java.util.concurrent.TimeUnit
 
 const val NOTIFICATION_CHANNEL_MAIN = "NOTIFICATION_CHANNEL_MAIN"
@@ -68,12 +70,16 @@ fun createPhotoMonitoringServiceNotification(context: Context): Notification {
             R.drawable.ic_stop_service_24,
             context.getString(R.string.notification_service_action_stop),
             // TODO Make this button actually do something
-            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+            PendingIntent.getBroadcast(context, 0, Intent(), PendingIntent.FLAG_UPDATE_CURRENT)
         )
         .build()
 }
 
-fun createPhotoScheduledNotification(context: Context, scheduledTaskDelayMs: Long): Notification {
+fun createPhotoScheduledNotification(
+    context: Context,
+    mediaUri: Uri,
+    scheduledTaskDelayMs: Long
+): Notification {
     val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
     val delayMinutes = TimeUnit.MILLISECONDS.toMinutes(scheduledTaskDelayMs)
     val delayMinutesStr = context.resources.getQuantityString(
@@ -91,14 +97,12 @@ fun createPhotoScheduledNotification(context: Context, scheduledTaskDelayMs: Lon
         .addAction(
             R.drawable.ic_opt_out_24,
             context.getString(R.string.notification_scheduled_action_optOut),
-            // TODO Make this button actually do something
-            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+            PendingIntent.getBroadcast(context, 0, Intent(PhotoMonitoringService.ACTION_OPT_OUT, mediaUri), PendingIntent.FLAG_UPDATE_CURRENT)
         )
         .addAction(
             R.drawable.ic_upload_immediately_24,
             context.getString(R.string.notification_scheduled_action_uploadImmediately),
-            // TODO Make this button actually do something
-            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+            PendingIntent.getBroadcast(context, 0, Intent(PhotoMonitoringService.ACTION_UPLOAD_IMMEDIATELY, mediaUri), PendingIntent.FLAG_UPDATE_CURRENT)
         )
         .setOngoing(true)
         .build()

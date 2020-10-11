@@ -25,8 +25,11 @@
 package org.jraf.android.fotomator.monitoring
 
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
@@ -53,6 +56,7 @@ import javax.inject.Inject
 class PhotoMonitoringService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val mutex = Mutex()
+    private var broadcastReceiver: BroadcastReceiver? = null
 
     @Inject
     lateinit var uploadScheduler: UploadScheduler
@@ -64,8 +68,13 @@ class PhotoMonitoringService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("isStarted=$isStarted")
+
+        if (isStarted) return START_STICKY
+        isStarted = true
+
         startForeground()
         startMonitoring()
+        registerBroadcastReceiver()
         return START_STICKY
     }
 
@@ -91,9 +100,6 @@ class PhotoMonitoringService : Service() {
 
     private fun startMonitoring() {
         Log.d("isStarted=$isStarted")
-
-        if (isStarted) return
-        isStarted = true
 
         handleLatestContent()
 
@@ -154,14 +160,51 @@ class PhotoMonitoringService : Service() {
         if (!allReadyKnown) uploadScheduler.addToSchedule(mediaUri)
     }
 
+    private fun registerBroadcastReceiver() {
+        Log.d()
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val mediaUri = intent.data!!
+                when (intent.action) {
+                    ACTION_OPT_OUT -> {
+                        val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.OPT_OUT)
+                        GlobalScope.launch {
+                            database.mediaDao().insert(media)
+                        }
+                        uploadScheduler.removeFromSchedule(mediaUri)
+                    }
+
+                    ACTION_UPLOAD_IMMEDIATELY -> {
+                        uploadScheduler.uploadImmediately(mediaUri)
+                    }
+                }
+            }
+        }
+
+        registerReceiver(broadcastReceiver, IntentFilter().apply {
+            addAction(ACTION_OPT_OUT)
+            addAction(ACTION_UPLOAD_IMMEDIATELY)
+            addDataType("*/*")
+        })
+    }
+
+    private fun unregisterBroadcastReceiver() {
+        broadcastReceiver?.let { unregisterReceiver(it) }
+        broadcastReceiver = null
+    }
+
     override fun onDestroy() {
         Log.d("isStarted=$isStarted")
         isStarted = false
         stopMonitoring()
+        unregisterBroadcastReceiver()
         super.onDestroy()
     }
 
     companion object {
         var isStarted: Boolean = false
+
+        const val ACTION_OPT_OUT = "ACTION_OPT_OUT"
+        const val ACTION_UPLOAD_IMMEDIATELY = "ACTION_UPLOAD_IMMEDIATELY"
     }
 }
