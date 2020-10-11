@@ -26,11 +26,13 @@ package org.jraf.android.fotomator.upload.scheduler
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.runBlocking
 import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.data.Media
 import org.jraf.android.fotomator.data.MediaUploadState
+import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
 import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.util.log.Log
 import java.io.FileInputStream
@@ -55,8 +57,11 @@ class UploadScheduler @Inject constructor(
      * @return `true` if the specified uri was already scheduled, `false` otherwise
      */
     fun addToSchedule(mediaUri: Uri): Boolean {
-        val delayMs = DEFAULT_DELAY_MS
+        val delayMs = getScheduledTaskDelayMs()
         Log.d("Scheduling upload mediaUri=$mediaUri in delayMs=$delayMs")
+
+        showScheduledNotification(mediaUri, delayMs)
+
         val scheduledFuture = scheduler.schedule({
             runBlocking {
                 uploadContent(mediaUri)
@@ -70,6 +75,7 @@ class UploadScheduler @Inject constructor(
      * @return `true` if the specified uri was scheduled, `false` otherwise (meaning this call removed nothing)
      */
     fun removeFromSchedule(mediaUri: Uri): Boolean {
+        Log.d("mediaUri=$mediaUri")
         val previousValue = scheduledTasks.remove(mediaUri)
         previousValue?.cancel(true)
         return previousValue != null
@@ -77,6 +83,9 @@ class UploadScheduler @Inject constructor(
 
     private suspend fun uploadContent(mediaUri: Uri) {
         Log.d("mediaUri=$mediaUri")
+
+        // Hide notification
+        hideScheduledNotification(mediaUri)
 
         // Update the db
         val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.SCHEDULED)
@@ -132,8 +141,27 @@ class UploadScheduler @Inject constructor(
         }
     }
 
+    private fun showScheduledNotification(mediaUri: Uri, delayMs: Long) {
+        Log.d("mediaUri=$mediaUri")
+        val notification = createPhotoScheduledNotification(context, delayMs)
+        val notificationManager = NotificationManagerCompat.from(context)
+        notificationManager.notify(mediaUri.toNotificationId(), notification)
+    }
+
+    private fun hideScheduledNotification(mediaUri: Uri) {
+        Log.d("mediaUri=$mediaUri")
+        val notificationManager = NotificationManagerCompat.from(context)
+        notificationManager.cancel(mediaUri.toNotificationId())
+    }
+
+    fun getScheduledTaskDelayMs() = DEFAULT_DELAY_MS
+
     companion object {
         private val DEFAULT_DELAY_MS = TimeUnit.MINUTES.toMillis(1)
         private const val MAX_UPLOAD_FAILED_BEFORE_GIVING_UP = 5
     }
+}
+
+private fun Uri.toNotificationId(): Int {
+    return toString().hashCode()
 }

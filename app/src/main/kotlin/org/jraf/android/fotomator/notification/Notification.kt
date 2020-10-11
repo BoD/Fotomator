@@ -32,8 +32,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.main.MainActivity
+import java.util.concurrent.TimeUnit
 
 const val NOTIFICATION_CHANNEL_MAIN = "NOTIFICATION_CHANNEL_MAIN"
 
@@ -49,24 +51,55 @@ fun createNotificationChannel(context: Context) {
         this.description = context.getString(R.string.notification_channel_main_description)
         setSound(null, null)
     }
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationManager = NotificationManagerCompat.from(context)
     notificationManager.createNotificationChannel(channel)
 }
 
 fun createPhotoMonitoringServiceNotification(context: Context): Notification {
-    val pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
+    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
-        .setContentTitle(context.getString(R.string.photoMonitoringService_notification_title))
-        .setContentText(context.getString(R.string.photoMonitoringService_notification_text))
+        .setContentTitle(context.getString(R.string.notification_service_title))
+        .setContentText(context.getString(R.string.notification_service_text))
         .setSmallIcon(R.drawable.ic_notification_24)
-        .setContentIntent(pendingIntent)
+        .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
-        .setTicker(context.getString(R.string.photoMonitoringService_notification_title))
+        .setTicker(context.getString(R.string.notification_service_title))
         .addAction(
             R.drawable.ic_stop_service_24,
             context.getString(R.string.notification_service_action_stop),
             // TODO Make this button actually do something
             PendingIntent.getBroadcast(context, 0, Intent(), 0)
         )
+        .build()
+}
+
+fun createPhotoScheduledNotification(context: Context, scheduledTaskDelayMs: Long): Notification {
+    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0)
+    val delayMinutes = TimeUnit.MILLISECONDS.toMinutes(scheduledTaskDelayMs)
+    val delayMinutesStr = context.resources.getQuantityString(
+        R.plurals.notification_scheduled_text_delay,
+        delayMinutes.toInt(), delayMinutes
+    )
+    val text = context.getString(R.string.notification_scheduled_text, delayMinutesStr)
+    return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
+        .setContentTitle(context.getString(R.string.notification_scheduled_title))
+        .setContentText(text)
+        .setSmallIcon(R.drawable.ic_notification_24)
+        .setContentIntent(mainActivityPendingIntent)
+        .setShowWhen(false)
+        .setTicker(context.getString(R.string.notification_scheduled_title))
+        .addAction(
+            R.drawable.ic_opt_out_24,
+            context.getString(R.string.notification_scheduled_action_optOut),
+            // TODO Make this button actually do something
+            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+        )
+        .addAction(
+            R.drawable.ic_upload_immediately_24,
+            context.getString(R.string.notification_scheduled_action_uploadImmediately),
+            // TODO Make this button actually do something
+            PendingIntent.getBroadcast(context, 0, Intent(), 0)
+        )
+        .setOngoing(true)
         .build()
 }
