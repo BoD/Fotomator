@@ -35,6 +35,7 @@ import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.data.Media
 import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
+import org.jraf.android.fotomator.notification.createPhotoUploadingNotification
 import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.util.log.Log
 import java.io.FileInputStream
@@ -102,8 +103,8 @@ class UploadScheduler @Inject constructor(
     private suspend fun uploadContent(mediaUri: Uri) {
         Log.d("mediaUri=$mediaUri")
 
-        // Hide notification
-        hideScheduledNotification(mediaUri)
+        // Update notification
+        showUploadingNotification(mediaUri)
 
         // Update the db
         val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.UPLOADING)
@@ -134,6 +135,10 @@ class UploadScheduler @Inject constructor(
             Log.d("uploadFailedCount=$uploadFailedCount")
             if (uploadFailedCount >= MAX_UPLOAD_FAILED_BEFORE_GIVING_UP) {
                 Log.d("Upload failed too many times: give up")
+
+                // Hide notification
+                hideScheduledNotification(mediaUri)
+
                 database.mediaDao().insert(
                     media.copy(
                         uploadState = MediaUploadState.ERROR,
@@ -152,6 +157,9 @@ class UploadScheduler @Inject constructor(
                 addToSchedule(mediaUri)
             }
         } else {
+            // Hide notification
+            hideScheduledNotification(mediaUri)
+
             database.mediaDao().insert(
                 media.copy(uploadState = MediaUploadState.UPLOADED)
             )
@@ -162,14 +170,18 @@ class UploadScheduler @Inject constructor(
     private fun showScheduledNotification(mediaUri: Uri, delayMs: Long) {
         Log.d("mediaUri=$mediaUri")
         val notification = createPhotoScheduledNotification(context, mediaUri, delayMs)
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(mediaUri.toNotificationId(), notification)
+        NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
+    }
+
+    private fun showUploadingNotification(mediaUri: Uri) {
+        Log.d("mediaUri=$mediaUri")
+        val notification = createPhotoUploadingNotification(context, mediaUri)
+        NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
     }
 
     private fun hideScheduledNotification(mediaUri: Uri) {
         Log.d("mediaUri=$mediaUri")
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.cancel(mediaUri.toNotificationId())
+        NotificationManagerCompat.from(context).cancel(mediaUri.toNotificationId())
     }
 
     fun getScheduledTaskDelayMs() = DEFAULT_DELAY_MS

@@ -10,11 +10,14 @@
 
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
+
     <string name="main_service_toast_enabled">Fotomator is ON</string>
     <string name="main_service_toast_disabled">Fotomator is off</string>
+
     <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
     <string name="slack_auth_button">Start Slack authentication</string>
     <string name="slack_auth_success">Slack authentication successful</string>
+
     <string name="notification_scheduled_title">New photo</string>
     <string name="notification_scheduled_text">This photo will be posted in %1$s</string>
     <plurals name="notification_scheduled_text_delay">
@@ -23,5 +26,8 @@
     </plurals>
     <string name="notification_scheduled_action_optOut">Don\'t upload this one</string>
     <string name="notification_scheduled_action_uploadImmediately">Upload immediately</string>
+
+    <string name="notification_uploading_title">Uploading photo…</string>
+    <string name="notification_uploading_text">This photo is being uploaded…</string>
 
 </resources>

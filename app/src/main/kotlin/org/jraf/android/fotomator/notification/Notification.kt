@@ -30,6 +30,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -102,11 +103,7 @@ fun createPhotoScheduledNotification(
 
     val photoBitmap = loadBitmapFromUri(context, mediaUri)
 
-    val bigPictureStyle = NotificationCompat.BigPictureStyle()
-        .bigPicture(photoBitmap)
-        .bigLargeIcon(null)
-        .setBigContentTitle(title)
-        .setSummaryText(text)
+    val bigPictureStyle = createBigPictureStyle(photoBitmap, title, text)
 
     // TODO group notifications
     // See https://developer.android.com/training/notify-user/group
@@ -146,6 +143,50 @@ fun createPhotoScheduledNotification(
         )
         .setOngoing(true)
         .build()
+}
+
+fun createPhotoUploadingNotification(
+    context: Context,
+    mediaUri: Uri,
+): Notification {
+    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+
+    val title = context.getString(R.string.notification_uploading_title)
+    val text = context.getString(R.string.notification_uploading_text)
+
+    val photoBitmap = loadBitmapFromUri(context, mediaUri)
+
+    val bigPictureStyle = createBigPictureStyle(photoBitmap, title, text)
+
+    // TODO group notifications
+    // See https://developer.android.com/training/notify-user/group
+
+    return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
+        .setStyle(bigPictureStyle)
+        .setContentTitle(title)
+        .setContentText(text)
+        .setSmallIcon(R.drawable.ic_notification_24)
+        .setLargeIcon(photoBitmap)
+        .setContentIntent(mainActivityPendingIntent)
+        .setShowWhen(false)
+        .setTicker(title)
+        .setColor(context.getColor(R.color.colorAccent))
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setOngoing(true)
+        .build()
+}
+
+
+private fun createBigPictureStyle(
+    photoBitmap: Bitmap,
+    title: String,
+    text: String
+): NotificationCompat.BigPictureStyle {
+    return NotificationCompat.BigPictureStyle()
+        .bigPicture(photoBitmap)
+        .bigLargeIcon(null)
+        .setBigContentTitle(title)
+        .setSummaryText(text)
 }
 
 fun uniqueRequestCode() = Random.nextInt()
