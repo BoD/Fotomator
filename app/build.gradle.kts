@@ -25,7 +25,7 @@ android {
         resConfigs("en", "fr")
 
         // Useful for api keys in the manifest (Maps, Crashlytics, ...)
-        manifestPlaceholders = AppConfig.buildProperties as Map<String, Any>
+        setManifestPlaceholders(AppConfig.buildProperties as Map<String, Any>)
 
         // Setting this to true disables the png generation at buildtime
         // (see http://android-developers.blogspot.fr/2016/02/android-support-library-232.html)
@@ -74,7 +74,6 @@ android {
     }
 
     compileOptions {
-        incremental = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }

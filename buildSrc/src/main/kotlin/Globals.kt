@@ -3,7 +3,7 @@ object Versions {
     const val GRADLE = "6.6.1"
     const val KOTLIN = "1.4.10"
     const val BEN_MANES_VERSIONS_PLUGIN = "0.33.0"
-    const val ANDROID_GRADLE_PLUGIN = "4.0.2"
+    const val ANDROID_GRADLE_PLUGIN = "4.1.0"
 
     // App dependencies
     const val ANDROIDX_CORE = "1.3.2"
@@ -23,7 +23,7 @@ object Versions {
 
     // Testing dependencies
     const val ESPRESSO = "3.3.0"
-    const val JUNIT = "4.13"
+    const val JUNIT = "4.13.1"
 }
 
 object AppConfig {
