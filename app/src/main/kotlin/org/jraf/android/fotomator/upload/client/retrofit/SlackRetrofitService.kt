@@ -25,8 +25,10 @@
 package org.jraf.android.fotomator.upload.client.retrofit
 
 import okhttp3.MultipartBody
+import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.ConversationsListResponse
 import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.FileUploadResponse
 import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.OauthAccessResponse
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -34,24 +36,44 @@ import retrofit2.http.Part
 import retrofit2.http.Query
 
 interface SlackRetrofitService {
+    @POST("oauth.v2.access")
+    suspend fun oauthAccess(
+        @Query("code")
+        code: String,
+
+        @Query("client_id")
+        clientId: String,
+
+        @Query("client_secret")
+        clientSecret: String,
+    ): OauthAccessResponse
+
     @Multipart
     @POST("files.upload")
     suspend fun filesUpload(
         @Header("Authorization")
         authorization: String,
+
         @Query("channels")
         channels: String,
+
         @Part
         file: MultipartBody.Part,
     ): FileUploadResponse
 
-    @POST("oauth.v2.access")
-    suspend fun oauthAccess(
-        @Query("code")
-        code: String,
-        @Query("client_id")
-        clientId: String,
-        @Query("client_secret")
-        clientSecret: String,
-    ): OauthAccessResponse
+    @GET("conversations.list")
+    suspend fun conversationsList(
+        @Header("Authorization")
+        authorization: String,
+
+        @Query("cursor")
+        cursor: String? = null,
+
+        @Query("exclude_archived")
+        excludeArchived: Boolean = true,
+
+        @Query("types")
+        types: String = "public_channel,private_channel"
+    ): ConversationsListResponse
+
 }
