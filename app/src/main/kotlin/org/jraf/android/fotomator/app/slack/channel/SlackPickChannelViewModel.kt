@@ -22,32 +22,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.main
+package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import org.jraf.android.fotomator.prefs.AppPrefs
+import androidx.lifecycle.liveData
+import org.jraf.android.fotomator.upload.client.SlackClient
 
-class MainViewModel @ViewModelInject constructor(
-    private val prefs: AppPrefs
+class SlackPickChannelViewModel @ViewModelInject constructor(
+    private val slackClient: SlackClient,
 ) : ViewModel() {
-    val isServiceEnabled: MutableLiveData<Boolean> = prefs.isServiceEnabled
 
-    val slackAuthToken: String? get() = prefs.slackAuthToken
+    val isLoadingVisible = MutableLiveData(true)
 
-    var slackChannel: String?
-        get() = prefs.slackChannel
-        set(value) {
-            prefs.slackChannel = value
-        }
+    val channelList: LiveData<List<String>> = liveData {
+        setLoading(true)
+        emit(slackClient.getChannelList())
+        setLoading(false)
+    }
 
-    val slackChannelLiveData: MutableLiveData<String?> = prefs.slackChannelLiveData
-
-    val pickSlackChannel = MutableLiveData<Unit?>()
-
-    fun onChannelClick() {
-        pickSlackChannel.value = Unit
-        pickSlackChannel.value = null
+    private fun setLoading(loading: Boolean) {
+        isLoadingVisible.value = loading
     }
 }

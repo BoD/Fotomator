@@ -22,32 +22,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.main
+package org.jraf.android.fotomator.util
 
-import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import org.jraf.android.fotomator.prefs.AppPrefs
+import androidx.recyclerview.widget.DiffUtil
 
-class MainViewModel @ViewModelInject constructor(
-    private val prefs: AppPrefs
-) : ViewModel() {
-    val isServiceEnabled: MutableLiveData<Boolean> = prefs.isServiceEnabled
+class BasicDiffUtilItemCallback<T> : DiffUtil.ItemCallback<T>() {
+    override fun areItemsTheSame(oldItem: T, newItem: T) = oldItem == newItem
 
-    val slackAuthToken: String? get() = prefs.slackAuthToken
-
-    var slackChannel: String?
-        get() = prefs.slackChannel
-        set(value) {
-            prefs.slackChannel = value
-        }
-
-    val slackChannelLiveData: MutableLiveData<String?> = prefs.slackChannelLiveData
-
-    val pickSlackChannel = MutableLiveData<Unit?>()
-
-    fun onChannelClick() {
-        pickSlackChannel.value = Unit
-        pickSlackChannel.value = null
-    }
+    override fun areContentsTheSame(oldItem: T, newItem: T) = true
 }

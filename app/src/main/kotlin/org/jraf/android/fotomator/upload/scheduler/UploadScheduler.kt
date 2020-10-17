@@ -36,6 +36,7 @@ import org.jraf.android.fotomator.data.Media
 import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
 import org.jraf.android.fotomator.notification.createPhotoUploadingNotification
+import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.util.log.Log
 import java.io.FileInputStream
@@ -51,7 +52,8 @@ import javax.inject.Singleton
 class UploadScheduler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val slackClient: SlackClient,
-    private val database: Database
+    private val database: Database,
+    private val appPrefs: AppPrefs,
 ) {
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private val scheduledTasks = mutableMapOf<Uri, ScheduledFuture<*>>()
@@ -124,7 +126,7 @@ class UploadScheduler @Inject constructor(
         val ok = parcelFileDescriptor.use {
             slackClient.uploadFile(
                 fileInputStream = FileInputStream(it.fileDescriptor),
-                channels = "test"
+                channels = appPrefs.slackChannel!!
             )
         }
 

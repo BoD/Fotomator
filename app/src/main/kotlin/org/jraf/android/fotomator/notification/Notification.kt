@@ -70,7 +70,7 @@ fun createPhotoMonitoringServiceNotification(context: Context): Notification {
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(context.getString(R.string.notification_service_title))
-        .setColor(context.getColor(R.color.colorAccent))
+        .setColor(context.getColor(R.color.colorPrimary))
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .addAction(
             R.drawable.ic_stop_service_24,
@@ -117,7 +117,7 @@ fun createPhotoScheduledNotification(
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(title)
-        .setColor(context.getColor(R.color.colorAccent))
+        .setColor(context.getColor(R.color.colorPrimary))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .addAction(
             R.drawable.ic_opt_out_24,
@@ -170,7 +170,7 @@ fun createPhotoUploadingNotification(
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(title)
-        .setColor(context.getColor(R.color.colorAccent))
+        .setColor(context.getColor(R.color.colorPrimary))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setOngoing(true)
         .build()

@@ -25,19 +25,22 @@
 package org.jraf.android.fotomator.app.main
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.R
-import org.jraf.android.fotomator.app.slack.SlackAuthActivity
+import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
+import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.util.log.Log
@@ -52,21 +55,46 @@ class MainActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.main_activity)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
+
+        observeUi()
     }
 
-    override fun onStart() {
-        super.onStart()
+    private fun observeUi() {
+        viewModel.isServiceEnabled.observe(this) { serviceEnabled ->
+            Log.d("serviceEnabled=$serviceEnabled")
+            if (serviceEnabled) {
+                startPhotoMonitoringService()
+            } else {
+                stopPhotoMonitoringService()
+            }
+        }
+
+        viewModel.pickSlackChannel.observe(this) { pickSlackChannel ->
+            if (pickSlackChannel != null) setupSlackChannel()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
         checkPermissions()
     }
 
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                onPermissionsOk()
-            } else {
-                showNoPermissionUi()
-            }
+    private val requestPermissionLauncher = registerForActivityResult(RequestPermission()) { isGranted ->
+        Log.d("isGranted=$isGranted")
+        if (isGranted) {
+            onPermissionsOk()
+        } else {
+            showNoPermissionUi()
         }
+    }
+
+    private val pickSlackChannelLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        Log.d("result=$result")
+        if (result.resultCode == Activity.RESULT_OK) {
+            val pickedChannel = SlackPickChannelActivity.getPickedChannelName(result.data!!)
+            viewModel.slackChannel = pickedChannel
+        }
+    }
 
     private fun checkPermissions() {
         Log.d()
@@ -94,10 +122,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onPermissionsOk() {
-        if (viewModel.slackAuthToken == null) {
-            setupSlackAuth()
-        } else {
-            observeUi()
+        when {
+            viewModel.slackAuthToken == null -> {
+                setupSlackAuth()
+            }
+            viewModel.slackChannel == null -> {
+                setupSlackChannel()
+            }
         }
     }
 
@@ -105,16 +136,10 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, SlackAuthActivity::class.java))
     }
 
-    private fun observeUi() {
-        viewModel.isServiceEnabled.observe(this) { serviceEnabled ->
-            Log.d("serviceEnabled=$serviceEnabled")
-            if (serviceEnabled) {
-                startPhotoMonitoringService()
-            } else {
-                stopPhotoMonitoringService()
-            }
-        }
+    private fun setupSlackChannel() {
+        pickSlackChannelLauncher.launch(Intent(this, SlackPickChannelActivity::class.java))
     }
+
 
     private fun startPhotoMonitoringService() {
         if (!PhotoMonitoringService.isStarted) {
