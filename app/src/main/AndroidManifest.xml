@@ -15,12 +15,13 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/Theme.Fotomator"
         tools:targetApi="n">
 
         <activity
             android:name=".app.main.MainActivity"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Fotomator.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
