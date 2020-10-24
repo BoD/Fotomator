@@ -28,8 +28,10 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
@@ -43,10 +45,12 @@ import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
+import org.jraf.android.util.dialog.AlertDialogFragment
+import org.jraf.android.util.dialog.AlertDialogListener
 import org.jraf.android.util.log.Log
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AlertDialogListener {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: MainActivityBinding
 
@@ -57,6 +61,8 @@ class MainActivity : AppCompatActivity() {
         binding.viewModel = viewModel
 
         observeUi()
+
+        checkPermissions()
     }
 
     private fun observeUi() {
@@ -74,17 +80,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        checkPermissions()
-    }
-
     private val requestPermissionLauncher = registerForActivityResult(RequestPermission()) { isGranted ->
         Log.d("isGranted=$isGranted")
         if (isGranted) {
-            onPermissionsOk()
+            onPermissionsGranted()
         } else {
-            showNoPermissionUi()
+            onPermissionsNotGranted()
+        }
+    }
+
+    private val setupSlackAuthLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        Log.d("result=$result")
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (viewModel.slackChannel == null) setupSlackChannel()
         }
     }
 
@@ -98,42 +106,53 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkPermissions() {
         Log.d()
-        val permission = Manifest.permission.READ_EXTERNAL_STORAGE
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            if (shouldShowRequestPermissionRationale(permission)) {
-                showPermissionRationaleUi(permission)
+        if (ContextCompat.checkSelfPermission(this, PERMISSION_TO_REQUEST) != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(PERMISSION_TO_REQUEST)) {
+                showPermissionRationaleUi()
             } else {
-                requestPermissionLauncher.launch(permission)
+                requestPermission()
             }
         } else {
-            onPermissionsOk()
+            onPermissionsGranted()
         }
     }
 
-    private fun showPermissionRationaleUi(permission: String) {
-        // TODO Show permission rationale UI
-        Log.d()
-        requestPermissionLauncher.launch(permission)
+    private fun requestPermission() {
+        requestPermissionLauncher.launch(PERMISSION_TO_REQUEST)
     }
 
-    private fun showNoPermissionUi() {
-        // TODO Show no permission UI
-        Log.d()
+    private fun onPermissionsNotGranted() {
+        val shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale(PERMISSION_TO_REQUEST)
+        Log.d("shouldShowRequestPermissionRationale=$shouldShowRequestPermissionRationale")
+        if (shouldShowRequestPermissionRationale) {
+            checkPermissions()
+        } else {
+            AlertDialogFragment.newInstance(DIALOG_NO_PERMISSION)
+                .message(R.string.main_permissionNotGrantedDialog_message)
+                .positiveButton(R.string.main_permissionNotGrantedDialog_positive)
+                .negativeButton(R.string.main_permissionNotGrantedDialog_negative)
+                .show(this)
+        }
     }
 
-    private fun onPermissionsOk() {
+    private fun showPermissionRationaleUi() {
+        Log.d()
+        AlertDialogFragment.newInstance(DIALOG_SHOW_RATIONALE)
+            .message(R.string.main_permissionShowRationaleDialog_message)
+            .positiveButton(R.string.main_permissionShowRationaleDialog_positive)
+            .show(this)
+    }
+
+    private fun onPermissionsGranted() {
+        Log.d()
         when {
-            viewModel.slackAuthToken == null -> {
-                setupSlackAuth()
-            }
-            viewModel.slackChannel == null -> {
-                setupSlackChannel()
-            }
+            viewModel.slackAuthToken == null -> setupSlackAuth()
+            viewModel.slackChannel == null -> setupSlackChannel()
         }
     }
 
     private fun setupSlackAuth() {
-        startActivity(Intent(this, SlackAuthActivity::class.java))
+        setupSlackAuthLauncher.launch(Intent(this, SlackAuthActivity::class.java))
     }
 
     private fun setupSlackChannel() {
@@ -158,5 +177,33 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.main_service_toast_disabled, Toast.LENGTH_LONG).show()
             stopService(Intent(this, PhotoMonitoringService::class.java))
         }
+    }
+
+    override fun onDialogClickPositive(tag: Int, payload: Any?) {
+        when (tag) {
+            DIALOG_SHOW_RATIONALE -> requestPermission()
+            DIALOG_NO_PERMISSION -> {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri: Uri = Uri.fromParts("package", packageName, null)
+                intent.data = uri
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+
+    override fun onDialogClickNegative(tag: Int, payload: Any?) {
+        when (tag) {
+            DIALOG_NO_PERMISSION -> finish()
+        }
+    }
+
+    override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
+
+    companion object {
+        private const val PERMISSION_TO_REQUEST = Manifest.permission.READ_EXTERNAL_STORAGE
+
+        private const val DIALOG_NO_PERMISSION = 0
+        private const val DIALOG_SHOW_RATIONALE = 1
     }
 }

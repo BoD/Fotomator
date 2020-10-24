@@ -6,6 +6,7 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorControlHighlight">@color/colorPrimaryAlpha</item>
         <item name="android:colorEdgeEffect">@color/colorPrimary</item>
+        <item name="textAppearanceButton">@style/TextAppearance.Fotomator.Button</item>
     </style>
 
     <style name="Theme.Fotomator.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -14,6 +15,12 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorControlHighlight">@color/colorPrimaryAlpha</item>
         <item name="android:colorEdgeEffect">@color/colorPrimary</item>
+        <item name="textAppearanceButton">@style/TextAppearance.Fotomator.Button</item>
+    </style>
+
+    <style name="TextAppearance.Fotomator.Button" parent="TextAppearance.MaterialComponents.Button">
+        <item name="textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
     </style>
 
 </resources>

@@ -9,6 +9,14 @@
     <string name="main_service_toast_enabled">Fotomator is ON</string>
     <string name="main_service_toast_disabled">Fotomator is off</string>
 
+    <string name="main_permissionNotGrantedDialog_message">The needed permissions were not granted, and Fotomator cannot work without them.</string>
+    <string name="main_permissionNotGrantedDialog_positive">System settings</string>
+    <string name="main_permissionNotGrantedDialog_negative">Quit</string>
+
+    <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and upload the photos.</string>
+    <string name="main_permissionShowRationaleDialog_positive">OK</string>
+
+
     <string name="slack_auth_title">Slack authentication</string>
     <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
     <string name="slack_auth_button">Start Slack authentication</string>

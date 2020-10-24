@@ -52,12 +52,12 @@ class SlackAuthActivity : AppCompatActivity() {
             if (resId != null) Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
         }
 
-        viewModel.finish.observe(this) {
+        viewModel.finishWithSuccess.observe(this) {
+            setResult(RESULT_OK)
             finish()
         }
 
         Log.d("intent=${StringUtil.toString(intent)}")
-        viewModel.checkForToken()
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -48,13 +48,7 @@ class SlackAuthViewModel @ViewModelInject constructor(
     val isLoadingVisible = MutableLiveData(false)
     val isStartSlackAuthButtonVisible = MutableLiveData(true)
     val toast = MutableLiveData<Int?>()
-    val finish = MutableLiveData<Unit>()
-
-    fun checkForToken() {
-        // If we already have a token, finish immediately.
-        // This avoids the case where a user keeps an old slack auth webpage open which will redirect here for no good reason
-        if (prefs.slackAuthToken != null) finish.value = Unit
-    }
+    val finishWithSuccess = MutableLiveData<Unit>()
 
     fun startAuthentication() {
         Log.d()
@@ -95,7 +89,7 @@ class SlackAuthViewModel @ViewModelInject constructor(
                     } else {
                         prefs.slackAuthToken = authToken
                         showToast(R.string.slack_auth_success)
-                        finish.value = Unit
+                        finishWithSuccess.value = Unit
                     }
                 }
             }
