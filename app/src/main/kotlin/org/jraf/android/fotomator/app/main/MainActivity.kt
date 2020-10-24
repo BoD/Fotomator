@@ -91,14 +91,24 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
     private val setupSlackAuthLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         Log.d("result=$result")
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode != Activity.RESULT_OK) {
+            if (viewModel.slackAuthToken == null) {
+                Log.d("User refuses to setup Slack auth: finish")
+                finish()
+            }
+        } else {
             if (viewModel.slackChannel == null) setupSlackChannel()
         }
     }
 
     private val pickSlackChannelLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         Log.d("result=$result")
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode != Activity.RESULT_OK) {
+            if (viewModel.slackChannel == null) {
+                Log.d("User refuses to setup Slack channel: finish")
+                finish()
+            }
+        } else {
             val pickedChannel = SlackPickChannelActivity.getPickedChannelName(result.data!!)
             viewModel.slackChannel = pickedChannel
         }
