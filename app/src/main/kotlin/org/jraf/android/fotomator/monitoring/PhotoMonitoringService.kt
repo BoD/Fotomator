@@ -53,6 +53,7 @@ import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
 import org.jraf.android.util.log.Log
 import org.jraf.android.util.string.StringUtil
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -140,10 +141,19 @@ class PhotoMonitoringService : Service() {
 
     private fun getLatestContentFromMediaStore(mediaStoreUri: Uri): Uri? {
         Log.d("mediaStoreUri=$mediaStoreUri")
-        val cursor = contentResolver.query(mediaStoreUri, arrayOf(BaseColumns._ID), null, null, "${MediaStore.MediaColumns.DATE_ADDED} DESC")!!
+        val cursor = contentResolver.query(
+            mediaStoreUri,
+            arrayOf(BaseColumns._ID, MediaStore.MediaColumns.BUCKET_DISPLAY_NAME),
+            null,
+            null,
+            "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+        )!!
         var id: Long = -1L
         if (cursor.moveToNext()) {
-            id = cursor.getLong(0)
+            val bucketName = cursor.getString(1)
+            val relevant = bucketName.toLowerCase(Locale.US) in RELEVANT_BUCKET_NAMES
+            Log.d("bucketName=$bucketName relevant=$relevant")
+            id = if (!relevant) -1 else cursor.getLong(0)
         }
         cursor.close()
         return if (id == -1L) null else ContentUris.withAppendedId(mediaStoreUri, id)
@@ -229,5 +239,6 @@ class PhotoMonitoringService : Service() {
         const val ACTION_OPT_OUT = "ACTION_OPT_OUT"
         const val ACTION_UPLOAD_IMMEDIATELY = "ACTION_UPLOAD_IMMEDIATELY"
         const val EXTRA_MEDIA_URI = "EXTRA_MEDIA_URI"
+        private val RELEVANT_BUCKET_NAMES = setOf("pictures", "camera")
     }
 }
