@@ -60,7 +60,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
     suspend fun uploadFile(fileInputStream: InputStream, channels: String): Boolean {
         val part = MultipartBody.Part.createFormData(
             "file",
-            "image",
+            FILE_NAME,
             RequestBody.create(
                 MediaType.parse("image/*"),
                 fileInputStream.readBytes()
@@ -107,5 +107,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
 
         const val SLACK_APP_AUTHORIZE_URL =
             "https://slack.com/oauth/v2/authorize?client_id=$SLACK_APP_CLIENT_ID&scope=&user_scope=files:write,channels:read,groups:read"
+
+        private const val FILE_NAME = "via Fotomator"
     }
 }
