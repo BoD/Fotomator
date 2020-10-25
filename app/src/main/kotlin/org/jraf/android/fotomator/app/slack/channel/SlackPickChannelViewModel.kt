@@ -24,11 +24,13 @@
  */
 package org.jraf.android.fotomator.app.slack.channel
 
+import androidx.annotation.StringRes
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.upload.client.SlackClient
 
 class SlackPickChannelViewModel @ViewModelInject constructor(
@@ -36,14 +38,27 @@ class SlackPickChannelViewModel @ViewModelInject constructor(
 ) : ViewModel() {
 
     val isLoadingVisible = MutableLiveData(true)
+    val toast = MutableLiveData<Int?>()
+    val finishWithError = MutableLiveData<Unit>()
 
     val channelList: LiveData<List<String>> = liveData {
         setLoading(true)
-        emit(slackClient.getChannelList())
+        val channelList = slackClient.getChannelList()
         setLoading(false)
+        if (channelList == null) {
+            showToast(R.string.slack_pick_channel_failed)
+            finishWithError.value = Unit
+        } else {
+            emit(channelList)
+        }
     }
 
     private fun setLoading(loading: Boolean) {
         isLoadingVisible.value = loading
+    }
+
+    private fun showToast(@StringRes resId: Int) {
+        toast.value = resId
+        toast.value = null
     }
 }

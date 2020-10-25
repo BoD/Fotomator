@@ -32,7 +32,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jraf.android.fotomator.data.Database
-import org.jraf.android.fotomator.data.Media
 import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
 import org.jraf.android.fotomator.notification.createPhotoUploadingNotification
@@ -87,9 +86,16 @@ class UploadScheduler @Inject constructor(
         return previousValue != null
     }
 
-    fun removeAllFromSchedule() {
+    suspend fun removeAllFromSchedule() {
         Log.d()
-        // TODO
+        val iterator = scheduledTasks.iterator()
+        while (iterator.hasNext()) {
+            val (mediaUri, future) = iterator.next()
+            future.cancel(true)
+            hideScheduledNotification(mediaUri)
+            iterator.remove()
+        }
+        database.mediaDao().updateAllScheduledAsOptOut()
     }
 
     fun uploadImmediately(mediaUri: Uri) {
@@ -109,10 +115,12 @@ class UploadScheduler @Inject constructor(
         showUploadingNotification(mediaUri)
 
         // Update the db
-        val media = Media(uri = mediaUri.toString(), uploadState = MediaUploadState.UPLOADING)
+        val media = database.mediaDao().getByUrl(mediaUri.toString())!!
+            .copy(uploadState = MediaUploadState.UPLOADING)
         database.mediaDao().insert(media)
 
         val parcelFileDescriptor = try {
+            @Suppress("BlockingMethodInNonBlockingContext")
             context.contentResolver.openFileDescriptor(mediaUri, "r")
         } catch (e: FileNotFoundException) {
             Log.w("openFileDescriptor threw an exception for mediaUri=$mediaUri", e)
@@ -186,7 +194,7 @@ class UploadScheduler @Inject constructor(
         NotificationManagerCompat.from(context).cancel(mediaUri.toNotificationId())
     }
 
-    fun getScheduledTaskDelayMs() = DEFAULT_DELAY_MS
+    private fun getScheduledTaskDelayMs() = DEFAULT_DELAY_MS
 
     companion object {
         private val DEFAULT_DELAY_MS = TimeUnit.MINUTES.toMillis(1)

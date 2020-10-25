@@ -26,6 +26,7 @@ package org.jraf.android.fotomator.app.slack.channel
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -55,6 +56,15 @@ class SlackPickChannelActivity : AppCompatActivity() {
 
         viewModel.channelList.observe(this) { channelList ->
             adapter.submitList(channelList.map { SlackChannelUiModel(it) })
+        }
+
+        viewModel.toast.observe(this) { resId: Int? ->
+            if (resId != null) Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+        }
+
+        viewModel.finishWithError.observe(this) {
+            setResult(RESULT_CANCELED)
+            finish()
         }
     }
 

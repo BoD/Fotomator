@@ -29,6 +29,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.jraf.android.fotomator.upload.client.retrofit.SlackRetrofitService
 import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.ConversationsListResponse
+import org.jraf.android.util.log.Log
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.InputStream
@@ -42,13 +43,18 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
     private val service: SlackRetrofitService = createRetrofit().create(SlackRetrofitService::class.java)
 
     suspend fun oauthAccess(code: String): String? {
-        val oauthAccessResponse = service.oauthAccess(
-            code = code,
-            clientId = SLACK_APP_CLIENT_ID,
-            clientSecret = SLACK_APP_CLIENT_SECRET
-        )
-        if (!oauthAccessResponse.ok) return null
-        return oauthAccessResponse.authedUser?.accessToken
+        try {
+            val oauthAccessResponse = service.oauthAccess(
+                code = code,
+                clientId = SLACK_APP_CLIENT_ID,
+                clientSecret = SLACK_APP_CLIENT_SECRET
+            )
+            if (!oauthAccessResponse.ok) return null
+            return oauthAccessResponse.authedUser?.accessToken
+        } catch (e: Exception) {
+            Log.w(e, "Could not make network call")
+            return null
+        }
     }
 
     suspend fun uploadFile(fileInputStream: InputStream, channels: String): Boolean {
@@ -61,25 +67,35 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
             )
         )
 
-        val fileUploadResponse = service.filesUpload(
-            authorization = getAuthorizationHeader(),
-            channels = channels,
-            file = part
-        )
-        return fileUploadResponse.ok
+        return try {
+            val fileUploadResponse = service.filesUpload(
+                authorization = getAuthorizationHeader(),
+                channels = channels,
+                file = part
+            )
+            fileUploadResponse.ok
+        } catch (e: Exception) {
+            Log.w(e, "Could not make network call")
+            false
+        }
     }
 
-    suspend fun getChannelList(): List<String> {
+    suspend fun getChannelList(): List<String>? {
         val res = mutableListOf<String>()
         var conversationsListResponse: ConversationsListResponse? = null
-        do {
-            conversationsListResponse = service.conversationsList(
-                authorization = getAuthorizationHeader(),
-                cursor = conversationsListResponse?.responseMetadata?.nextCursor?.ifEmpty { null }
-            )
-            res += conversationsListResponse.channels.map { it.name }
-        } while (!conversationsListResponse?.responseMetadata?.nextCursor.isNullOrEmpty())
-        return res.sorted()
+        return try {
+            do {
+                conversationsListResponse = service.conversationsList(
+                    authorization = getAuthorizationHeader(),
+                    cursor = conversationsListResponse?.responseMetadata?.nextCursor?.ifEmpty { null }
+                )
+                res += conversationsListResponse.channels.map { it.name }
+            } while (!conversationsListResponse?.responseMetadata?.nextCursor.isNullOrEmpty())
+            res.sorted()
+        } catch (e: Exception) {
+            Log.w(e, "Could not make network call")
+            null
+        }
     }
 
     private fun getAuthorizationHeader() = "Bearer ${authTokenProvider.getAuthToken()}"

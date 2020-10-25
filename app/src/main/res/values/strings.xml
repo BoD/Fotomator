@@ -4,7 +4,7 @@
 
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
-    <string name="main_channel">Posting to: #%1$s</string>
+    <string name="main_channel">Posting to #%1$s</string>
 
     <string name="main_service_toast_enabled">Fotomator is ON</string>
     <string name="main_service_toast_disabled">Fotomator is off</string>
@@ -23,6 +23,7 @@
     <string name="slack_auth_success">Slack authentication successful</string>
 
     <string name="slack_pick_channel_title">Pick a channel</string>
+    <string name="slack_pick_channel_failed">Could not fetch channel list, please try again</string>
 
     <string name="notification_channel_main_name">Main channel</string>
     <string name="notification_channel_main_description">Main channel</string>

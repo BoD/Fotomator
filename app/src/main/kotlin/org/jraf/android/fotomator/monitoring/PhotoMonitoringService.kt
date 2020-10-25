@@ -216,6 +216,9 @@ class PhotoMonitoringService : Service() {
         isStarted = false
         stopMonitoring()
         unregisterBroadcastReceiver()
+        GlobalScope.launch {
+            uploadScheduler.removeAllFromSchedule()
+        }
         super.onDestroy()
     }
 

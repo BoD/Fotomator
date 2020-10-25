@@ -39,4 +39,7 @@ interface MediaDao {
 
     @Query("DELETE FROM Media WHERE uri = :uri")
     suspend fun deleteByUrl(uri: String)
+
+    @Query("UPDATE Media SET uploadState = $MEDIA_UPLOAD_STATE_DB_OPT_OUT WHERE uploadState = $MEDIA_UPLOAD_STATE_DB_SCHEDULED")
+    suspend fun updateAllScheduledAsOptOut()
 }
