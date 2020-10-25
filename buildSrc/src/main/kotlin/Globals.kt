@@ -1,9 +1,10 @@
 object Versions {
     // Misc and plugins
-    const val GRADLE = "6.6.1"
+    const val GRADLE = "6.7"
     const val KOTLIN = "1.4.10"
     const val BEN_MANES_VERSIONS_PLUGIN = "0.33.0"
     const val ANDROID_GRADLE_PLUGIN = "4.1.0"
+    const val OSS_LICENSES_PLUGIN = "0.10.2"
 
     // App dependencies
     const val ANDROIDX_CORE = "1.3.2"
@@ -20,6 +21,7 @@ object Versions {
     const val RETROFIT = "2.9.0"
     const val MOSHI = "1.11.0"
     const val MATERIAL = "1.2.1"
+    const val PLAY_SERVICES_OSS_LICENSE = "17.0.0"
 
     // Testing dependencies
     const val ESPRESSO = "3.3.0"

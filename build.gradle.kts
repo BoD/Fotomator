@@ -15,6 +15,7 @@ buildscript {
         classpath(kotlin("gradle-plugin", Versions.KOTLIN))
         classpath("com.github.ben-manes", "gradle-versions-plugin", Versions.BEN_MANES_VERSIONS_PLUGIN)
         classpath("com.google.dagger", "hilt-android-gradle-plugin", Versions.HILT)
+        classpath("com.google.android.gms", "oss-licenses-plugin", Versions.OSS_LICENSES_PLUGIN)
     }
 }
 

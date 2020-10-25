@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {
@@ -151,6 +152,9 @@ dependencies {
     // Hilt
     implementation("com.google.dagger", "hilt-android", Versions.HILT)
     kapt("com.google.dagger", "hilt-compiler", Versions.HILT)
+
+    // Play services
+    implementation("com.google.android.gms", "play-services-oss-licenses", Versions.PLAY_SERVICES_OSS_LICENSE)
 
     // Testing
     androidTestImplementation("androidx.test.espresso", "espresso-core", Versions.ESPRESSO) {
