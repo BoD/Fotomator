@@ -18,8 +18,10 @@
         android:theme="@style/Theme.Fotomator"
         tools:targetApi="n">
 
+        <!-- Main -->
         <activity
             android:name=".app.main.MainActivity"
+            android:label=""
             android:launchMode="singleTask"
             android:theme="@style/Theme.Fotomator.NoActionBar">
             <intent-filter>
@@ -29,6 +31,7 @@
             </intent-filter>
         </activity>
 
+        <!-- Slack auth -->
         <activity
             android:name=".app.slack.auth.SlackAuthActivity"
             android:label="@string/slack_auth_title"
@@ -45,11 +48,29 @@
             </intent-filter>
         </activity>
 
+        <!-- Slack pick channel -->
         <activity
             android:name=".app.slack.channel.SlackPickChannelActivity"
             android:label="@string/slack_pick_channel_title" />
 
+        <!-- About -->
+        <activity
+            android:name="org.jraf.android.util.about.AboutActivity"
+            android:label="@string/about_title" />
+
+        <!-- Photo monitoring service -->
         <service android:name=".monitoring.PhotoMonitoringService" />
+
+        <!-- File provider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
     </application>
 
 </manifest>

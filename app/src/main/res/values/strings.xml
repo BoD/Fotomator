@@ -1,7 +1,7 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Fotomator</string>
 
-
+    <!-- Main -->
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
     <string name="main_channel">Posting to #%1$s</string>
@@ -15,16 +15,19 @@
 
     <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and upload the photos.</string>
     <string name="main_permissionShowRationaleDialog_positive">OK</string>
+    <string name="main_menu_about">About…</string>
 
-
+    <!-- Slack auth -->
     <string name="slack_auth_title">Slack authentication</string>
     <string name="slack_auth_failed">Slack authentication has failed, please try again</string>
     <string name="slack_auth_button">Start Slack authentication</string>
     <string name="slack_auth_success">Slack authentication successful</string>
 
+    <!-- Slack pick channel -->
     <string name="slack_pick_channel_title">Pick a channel</string>
     <string name="slack_pick_channel_failed">Could not fetch channel list, please try again</string>
 
+    <!-- Notifications -->
     <string name="notification_channel_main_name">Main channel</string>
     <string name="notification_channel_main_description">Main channel</string>
 
@@ -43,5 +46,20 @@
 
     <string name="notification_uploading_title">Uploading photo…</string>
     <string name="notification_uploading_text">This photo is being uploaded…</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_authorCopyright" translatable="false" tools:ignore="TypographyOther">Copyright (C) 2020–present Benoit \'BoD\' Lubek.</string>
+    <string name="about_License" translatable="false">Licensed under the terms of the GNU General Public License.</string>
+    <string name="about_email_uri" translatable="false">mailto:BoD@JRAF.org</string>
+    <string name="about_email_text">Contact the author</string>
+    <string name="about_web_uri" translatable="false">https://JRAF.org/android/</string>
+    <string name="about_web_text">Author\'s web page</string>
+    <string name="about_sources_uri" translatable="false">https://github.com/BoD/Fotomator/</string>
+    <string name="about_sources_text">Source code on Github</string>
+    <string name="about_shareText_subject">Checkout out this app!</string>
+    <string name="about_shareText_body">This app automatically posts photos to Slack as you take them!\nCheck it out
+        here:\nhttps://play.google.com/store/apps/details?id=%s
+    </string>
 
 </resources>

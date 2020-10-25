@@ -32,6 +32,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
@@ -40,11 +42,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import dagger.hilt.android.AndroidEntryPoint
+import org.jraf.android.fotomator.BuildConfig
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
+import org.jraf.android.util.about.AboutActivityIntentBuilder
 import org.jraf.android.util.dialog.AlertDialogFragment
 import org.jraf.android.util.dialog.AlertDialogListener
 import org.jraf.android.util.log.Log
@@ -60,9 +64,21 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+
         observeUi()
 
         checkPermissions()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        onAboutClicked()
+        return super.onOptionsItemSelected(item)
     }
 
     private fun observeUi() {
@@ -209,6 +225,27 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
+
+    fun onAboutClicked() {
+        startActivity(
+            AboutActivityIntentBuilder()
+                .setAppName(getString(R.string.app_name))
+                .setBuildDate(BuildConfig.BUILD_DATE)
+                .setGitSha1(BuildConfig.GIT_SHA1)
+                .setAuthorCopyright(getString(R.string.about_authorCopyright))
+                .setLicense(getString(R.string.about_License))
+                .setShareTextSubject(getString(R.string.about_shareText_subject))
+                .setShareTextBody(getString(R.string.about_shareText_body))
+                .setBackgroundResId(R.drawable.about_bg)
+                .setShowOpenSourceLicencesLink(true)
+                .addLink(getString(R.string.about_email_uri), getString(R.string.about_email_text))
+                .addLink(getString(R.string.about_web_uri), getString(R.string.about_web_text))
+                .addLink(getString(R.string.about_sources_uri), getString(R.string.about_sources_text))
+                .setIsLightIcons(true)
+                .build(this)
+        )
+    }
+
 
     companion object {
         private const val PERMISSION_TO_REQUEST = Manifest.permission.READ_EXTERNAL_STORAGE
