@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
+        title = null
         setSupportActionBar(findViewById(R.id.toolbar))
 
         observeUi()

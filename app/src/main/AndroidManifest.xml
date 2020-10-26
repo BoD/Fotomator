@@ -21,7 +21,6 @@
         <!-- Main -->
         <activity
             android:name=".app.main.MainActivity"
-            android:label=""
             android:launchMode="singleTask"
             android:theme="@style/Theme.Fotomator.NoActionBar">
             <intent-filter>
