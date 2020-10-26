@@ -84,6 +84,9 @@ subprojects {
         if (name == "assembleRelease") {
             dependsOn(incrementBuildNumberTask)
         }
+        if (name == "bundleRelease") {
+            dependsOn(incrementBuildNumberTask)
+        }
     }
 }
 
