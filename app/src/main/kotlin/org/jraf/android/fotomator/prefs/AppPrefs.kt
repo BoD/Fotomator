@@ -36,10 +36,17 @@ import javax.inject.Singleton
 class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
     private val prefs = Prefs(context)
 
-    val isServiceEnabled: MutableLiveData<Boolean> by prefs.BooleanLiveData(false)
+    var isServiceEnabled: Boolean by prefs.Boolean(false, Key(KEY_IS_SERVICE_ENABLED))
+    val isServiceEnabledLiveData: MutableLiveData<Boolean> by prefs.BooleanLiveData(false, Key(KEY_IS_SERVICE_ENABLED))
+    val automaticallyStopServiceDateTime: MutableLiveData<Long?> by prefs.LongLiveData(Key(AUTOMATICALLY_STOP_SERVICE_DATE_TIME))
 
     var slackAuthToken: String? by prefs.String()
 
     var slackChannel: String? by prefs.String(Key("slackChannel"))
     val slackChannelLiveData: MutableLiveData<String?> by prefs.StringLiveData(Key("slackChannel"))
+
+    companion object {
+        private const val KEY_IS_SERVICE_ENABLED = "isServiceEnabled"
+        private const val AUTOMATICALLY_STOP_SERVICE_DATE_TIME = "automaticallyStopServiceDateTime"
+    }
 }

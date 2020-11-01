@@ -24,6 +24,7 @@
  */
 package org.jraf.android.fotomator.monitoring
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.ContentUris
@@ -37,6 +38,8 @@ import android.os.IBinder
 import android.os.Looper
 import android.provider.BaseColumns
 import android.provider.MediaStore
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -82,12 +85,13 @@ class PhotoMonitoringService : Service() {
         startForeground()
         startMonitoring()
         registerBroadcastReceiver()
+        startObservingAutomaticallyStopServiceDateTime()
         return START_STICKY
     }
 
     private fun startForeground() {
         createNotificationChannel(this)
-        val notification = createPhotoMonitoringServiceNotification(this)
+        val notification = createPhotoMonitoringServiceNotification(this, appPrefs.automaticallyStopServiceDateTime.value)
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
@@ -139,6 +143,7 @@ class PhotoMonitoringService : Service() {
         contentResolver.unregisterContentObserver(externalMediaContentObserver)
     }
 
+    @SuppressLint("Recycle", "InlinedApi")
     private fun getLatestContentFromMediaStore(mediaStoreUri: Uri): Uri? {
         Log.d("mediaStoreUri=$mediaStoreUri")
         val cursor = contentResolver.query(
@@ -188,7 +193,7 @@ class PhotoMonitoringService : Service() {
                 Log.d("intent=${StringUtil.toString(intent)}")
                 when (intent.action) {
                     ACTION_STOP_SERVICE -> {
-                        appPrefs.isServiceEnabled.value = false
+                        appPrefs.isServiceEnabled = false
                         stopSelf()
                     }
 
@@ -221,6 +226,20 @@ class PhotoMonitoringService : Service() {
         broadcastReceiver = null
     }
 
+    private fun startObservingAutomaticallyStopServiceDateTime() {
+        appPrefs.automaticallyStopServiceDateTime.observeForever(automaticallyStopServiceDateTimeObserver)
+    }
+
+    private fun stopObservingAutomaticallyStopServiceDateTime() {
+        appPrefs.automaticallyStopServiceDateTime.removeObserver(automaticallyStopServiceDateTimeObserver)
+    }
+
+    private val automaticallyStopServiceDateTimeObserver = Observer<Long?> { automaticallyStopServiceDateTime ->
+        val notification = createPhotoMonitoringServiceNotification(this, automaticallyStopServiceDateTime)
+        NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, notification)
+    }
+
+
     override fun onDestroy() {
         Log.d("isStarted=$isStarted")
         isStarted = false
@@ -229,6 +248,8 @@ class PhotoMonitoringService : Service() {
         GlobalScope.launch {
             uploadScheduler.removeAllFromSchedule()
         }
+        stopObservingAutomaticallyStopServiceDateTime()
+        appPrefs.automaticallyStopServiceDateTime.value = null
         super.onDestroy()
     }
 

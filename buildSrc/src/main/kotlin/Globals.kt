@@ -14,13 +14,13 @@ object Versions {
     const val ANDROIDX_LIFECYCLE = "2.2.0"
     const val ANDROIDX_ROOM = "2.2.5"
     const val ANDROIDX_WORK_MANAGER = "2.4.0"
-    const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.2"
+    const val ANDROIDX_CONSTRAINT_LAYOUT = "2.0.4"
     const val ANDROIDX_HILT = "1.0.0-alpha02"
     const val HILT = "2.29.1-alpha"
-    const val KPREFS = "1.4.0"
+    const val KPREFS = "1.6.0"
     const val RETROFIT = "2.9.0"
     const val MOSHI = "1.11.0"
-    const val MATERIAL = "1.2.1"
+    const val MATERIAL = "1.3.0-alpha03"
     const val PLAY_SERVICES_OSS_LICENSE = "17.0.0"
 
     // Testing dependencies

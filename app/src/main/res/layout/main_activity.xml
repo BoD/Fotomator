@@ -6,6 +6,8 @@
 
     <data>
 
+        <import type="com.google.android.material.switchmaterial.SwitchMaterial" />
+
         <variable
             name="viewModel"
             type="org.jraf.android.fotomator.app.main.MainViewModel" />
@@ -37,8 +39,9 @@
             android:id="@+id/swiService"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="@={viewModel.isServiceEnabled}"
-            android:text="@{viewModel.isServiceEnabled ? @string/main_service_switch_enabled : @string/main_service_switch_disabled}"
+            android:checked="@={viewModel.isServiceEnabledLiveData}"
+            android:onClick="@{(v) -> viewModel.onServiceEnabledSwitchClick(((SwitchMaterial)v).isChecked())}"
+            android:text="@{viewModel.isServiceEnabledLiveData ? @string/main_service_switch_enabled : @string/main_service_switch_disabled}"
             android:textAppearance="?android:textAppearanceMedium"
             android:textColor="?android:textColorPrimary"
             app:layout_constraintBottom_toTopOf="@+id/txtChannel"
@@ -55,12 +58,29 @@
             android:layout_marginTop="16dp"
             android:onClick="@{() -> viewModel.onChannelClick()}"
             android:text="@{@string/main_channel(viewModel.slackChannelLiveData)}"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/txtAutomaticallyStopServiceDateTime"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/swiService"
             app:visible="@{viewModel.slackChannelLiveData}"
             tools:text="Posting to: #test" />
+
+        <Button
+            android:id="@+id/txtAutomaticallyStopServiceDateTime"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:enabled="@{viewModel.isServiceEnabledLiveData}"
+            android:onClick="@{() -> viewModel.onAutomaticallyStopServiceDateTimeClick()}"
+            android:text="@{viewModel.automaticallyStopServiceDateTimeFormatted}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtChannel"
+            app:visible="@{viewModel.slackChannelLiveData}"
+            tools:text="Stop on Oct. 11 at 1:30 PM" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

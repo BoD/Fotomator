@@ -32,6 +32,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -41,6 +42,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.BuildConfig
 import org.jraf.android.fotomator.R
@@ -83,7 +88,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private fun observeUi() {
-        viewModel.isServiceEnabled.observe(this) { serviceEnabled ->
+        viewModel.isServiceEnabledLiveData.observe(this) { serviceEnabled ->
             Log.d("serviceEnabled=$serviceEnabled")
             if (serviceEnabled) {
                 startPhotoMonitoringService()
@@ -94,6 +99,18 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         viewModel.pickSlackChannel.observe(this) { pickSlackChannel ->
             if (pickSlackChannel != null) setupSlackChannel()
+        }
+
+        viewModel.showAutomaticallyStopServiceDialog.observe(this) { showAutomaticallyStopServiceDialog ->
+            if (showAutomaticallyStopServiceDialog != null) showAutomaticallyStopServiceDialog()
+        }
+
+        viewModel.showAutomaticallyStopServiceDatePicker.observe(this) { showAutomaticallyStopServiceDatePicker ->
+            if (showAutomaticallyStopServiceDatePicker != null) showAutomaticallyStopServiceDatePicker()
+        }
+
+        viewModel.showAutomaticallyStopServiceTimePicker.observe(this) { showAutomaticallyStopServiceTimePicker ->
+            if (showAutomaticallyStopServiceTimePicker != null) showAutomaticallyStopServiceTimePicker()
         }
     }
 
@@ -216,6 +233,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
                 startActivity(intent)
                 finish()
             }
+            DIALOG_AUTOMATICALLY_STOP_SERVICE -> viewModel.showAutomaticallyStopServiceDatePicker.value = Unit
         }
     }
 
@@ -227,7 +245,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
     override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
 
-    fun onAboutClicked() {
+    private fun onAboutClicked() {
         startActivity(
             AboutActivityIntentBuilder()
                 .setAppName(getString(R.string.app_name))
@@ -247,11 +265,71 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         )
     }
 
+    //--------------------------------------------------------------------------
+    // region Automatically stop service date/time.
+    //--------------------------------------------------------------------------
+
+    private fun showAutomaticallyStopServiceDialog() {
+        Log.d()
+        AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
+            .title(R.string.main_automaticallyStopServiceDialog_title)
+            .message(R.string.main_automaticallyStopServiceDialog_message)
+            .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
+            .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
+            .show(this)
+    }
+
+    private fun showAutomaticallyStopServiceDatePicker() {
+        if (supportFragmentManager.findFragmentByTag(DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE) != null) return
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(R.string.main_automaticallyStopServiceDialog_title)
+            .setCalendarConstraints(CalendarConstraints.Builder().setStart(System.currentTimeMillis()).build())
+            .build()
+        datePicker.addOnNegativeButtonClickListener() {
+            Log.d()
+            viewModel.onAutomaticallyStopServiceDatePicked(null)
+        }
+        datePicker.addOnCancelListener {
+            Log.d()
+            viewModel.onAutomaticallyStopServiceDatePicked(null)
+        }
+        datePicker.addOnPositiveButtonClickListener { timestamp ->
+            Log.d("timestamp=$timestamp}")
+            viewModel.onAutomaticallyStopServiceDatePicked(timestamp)
+        }
+        datePicker.show(supportFragmentManager, DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE)
+    }
+
+    private fun showAutomaticallyStopServiceTimePicker() {
+        if (supportFragmentManager.findFragmentByTag(DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME) != null) return
+        val timePicker = MaterialTimePicker.Builder()
+            .setTitleText(R.string.main_automaticallyStopServiceDialog_title)
+            .setTimeFormat(if (DateFormat.is24HourFormat(this)) TimeFormat.CLOCK_24H else TimeFormat.CLOCK_12H)
+            .build()
+        timePicker.addOnNegativeButtonClickListener {
+            Log.d()
+            viewModel.onAutomaticallyStopServiceTimePicked(null, null)
+        }
+        timePicker.addOnCancelListener {
+            Log.d()
+            viewModel.onAutomaticallyStopServiceTimePicked(null, null)
+        }
+        timePicker.addOnPositiveButtonClickListener {
+            Log.d()
+            viewModel.onAutomaticallyStopServiceTimePicked(timePicker.hour, timePicker.minute)
+        }
+        timePicker.show(supportFragmentManager, DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME)
+    }
+
+    // endregion
 
     companion object {
         private const val PERMISSION_TO_REQUEST = Manifest.permission.READ_EXTERNAL_STORAGE
 
         private const val DIALOG_NO_PERMISSION = 0
         private const val DIALOG_SHOW_RATIONALE = 1
+        private const val DIALOG_AUTOMATICALLY_STOP_SERVICE = 2
+        private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE = "DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE"
+        private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME = "DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME"
     }
 }

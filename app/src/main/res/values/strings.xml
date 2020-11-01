@@ -5,6 +5,8 @@
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
     <string name="main_channel">Posting to #%1$s</string>
+    <string name="main_automaticallyStopServiceDateTime_notSet">End date not set</string>
+    <string name="main_automaticallyStopServiceDateTime_set">Will stop on %1$s</string>
 
     <string name="main_service_toast_enabled">Fotomator is ON</string>
     <string name="main_service_toast_disabled">Fotomator is off</string>
@@ -16,6 +18,11 @@
     <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and upload the photos.</string>
     <string name="main_permissionShowRationaleDialog_positive">OK</string>
     <string name="main_menu_about">About…</string>
+
+    <string name="main_automaticallyStopServiceDialog_title">When to stop?</string>
+    <string name="main_automaticallyStopServiceDialog_message">New photos will automatically be posted from now on.\nYou can stop Fotomator manually, or schedule a date/time to automatically stop.</string>
+    <string name="main_automaticallyStopServiceDialog_positive">Set a date/time</string>
+    <string name="main_automaticallyStopServiceDialog_negative">Manually</string>
 
     <!-- Slack auth -->
     <string name="slack_auth_title">Slack authentication</string>
@@ -32,7 +39,8 @@
     <string name="notification_channel_main_description">Main channel</string>
 
     <string name="notification_service_title">Fotomator is ON</string>
-    <string name="notification_service_text">New photos will automatically be posted</string>
+    <string name="notification_service_text_withoutEndDate">New photos will automatically be posted</string>
+    <string name="notification_service_text_withEndDate">New photos will automatically be posted until %1$s</string>
     <string name="notification_service_action_stop">Stop Fotomator</string>
 
     <string name="notification_scheduled_title">New photo</string>

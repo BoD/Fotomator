@@ -39,6 +39,8 @@ import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.main.MainActivity
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.fotomator.util.loadBitmapFromUri
+import java.text.DateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -61,11 +63,21 @@ fun createNotificationChannel(context: Context) {
     notificationManager.createNotificationChannel(channel)
 }
 
-fun createPhotoMonitoringServiceNotification(context: Context): Notification {
+fun createPhotoMonitoringServiceNotification(context: Context, automaticallyStopServiceDateTime: Long?): Notification {
     val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
         .setContentTitle(context.getString(R.string.notification_service_title))
-        .setContentText(context.getString(R.string.notification_service_text))
+        .setContentText(context.getString(R.string.notification_service_text_withoutEndDate))
+        .setStyle(
+            NotificationCompat.BigTextStyle().bigText(
+                if (automaticallyStopServiceDateTime == null) {
+                    context.getString(R.string.notification_service_text_withoutEndDate)
+                } else {
+                    val formattedDateTime = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(automaticallyStopServiceDateTime))
+                    context.getString(R.string.notification_service_text_withEndDate, formattedDateTime)
+                }
+            )
+        )
         .setSmallIcon(R.drawable.ic_notification_24)
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
