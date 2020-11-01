@@ -33,6 +33,7 @@ import androidx.databinding.DataBindingUtil
 import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.databinding.SlackAuthActivityBinding
+import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 import org.jraf.android.util.string.StringUtil
 
@@ -48,8 +49,8 @@ class SlackAuthActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        viewModel.toast.observe(this) { resId: Int? ->
-            if (resId != null) Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+        viewModel.toast.observeNonNull(this) { resId ->
+            Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
         }
 
         viewModel.finishWithSuccess.observe(this) {

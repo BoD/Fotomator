@@ -57,6 +57,10 @@ import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
 import org.jraf.android.util.log.Log
 import org.jraf.android.util.string.StringUtil
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -73,6 +77,9 @@ class PhotoMonitoringService : Service() {
 
     @Inject
     lateinit var appPrefs: AppPrefs
+
+    private val automaticallyStopServiceScheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+    private var automaticallyStopServiceScheduledTask: ScheduledFuture<*>? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -235,8 +242,22 @@ class PhotoMonitoringService : Service() {
     }
 
     private val automaticallyStopServiceDateTimeObserver = Observer<Long?> { automaticallyStopServiceDateTime ->
+        Log.d("automaticallyStopServiceDateTime=$automaticallyStopServiceDateTime")
         val notification = createPhotoMonitoringServiceNotification(this, automaticallyStopServiceDateTime)
         NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, notification)
+
+        automaticallyStopServiceScheduledTask?.cancel(true)
+        if (automaticallyStopServiceDateTime == null) {
+            // Un-schedule auto stop
+            automaticallyStopServiceScheduledTask = null
+        } else {
+            // Schedule auto stop
+            val delay = automaticallyStopServiceDateTime - System.currentTimeMillis()
+            automaticallyStopServiceScheduledTask = automaticallyStopServiceScheduler.schedule({
+                appPrefs.isServiceEnabled = false
+                stopSelf()
+            }, delay, TimeUnit.MILLISECONDS)
+        }
     }
 
 
@@ -250,6 +271,8 @@ class PhotoMonitoringService : Service() {
         }
         stopObservingAutomaticallyStopServiceDateTime()
         appPrefs.automaticallyStopServiceDateTime.value = null
+        automaticallyStopServiceScheduledTask?.cancel(true)
+        automaticallyStopServiceScheduledTask = null
         super.onDestroy()
     }
 

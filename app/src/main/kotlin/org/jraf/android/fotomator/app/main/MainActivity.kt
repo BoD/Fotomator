@@ -53,6 +53,7 @@ import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
+import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.about.AboutActivityIntentBuilder
 import org.jraf.android.util.dialog.AlertDialogFragment
 import org.jraf.android.util.dialog.AlertDialogListener
@@ -97,20 +98,24 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             }
         }
 
-        viewModel.pickSlackChannel.observe(this) { pickSlackChannel ->
-            if (pickSlackChannel != null) setupSlackChannel()
+        viewModel.pickSlackChannel.observeNonNull(this) {
+            setupSlackChannel()
         }
 
-        viewModel.showAutomaticallyStopServiceDialog.observe(this) { showAutomaticallyStopServiceDialog ->
-            if (showAutomaticallyStopServiceDialog != null) showAutomaticallyStopServiceDialog()
+        viewModel.showAutomaticallyStopServiceDialog.observeNonNull(this) {
+            showAutomaticallyStopServiceDialog()
         }
 
-        viewModel.showAutomaticallyStopServiceDatePicker.observe(this) { showAutomaticallyStopServiceDatePicker ->
-            if (showAutomaticallyStopServiceDatePicker != null) showAutomaticallyStopServiceDatePicker()
+        viewModel.showAutomaticallyStopServiceDatePicker.observeNonNull(this) {
+            showAutomaticallyStopServiceDatePicker()
         }
 
-        viewModel.showAutomaticallyStopServiceTimePicker.observe(this) { showAutomaticallyStopServiceTimePicker ->
-            if (showAutomaticallyStopServiceTimePicker != null) showAutomaticallyStopServiceTimePicker()
+        viewModel.showAutomaticallyStopServiceTimePicker.observeNonNull(this) {
+            showAutomaticallyStopServiceTimePicker()
+        }
+
+        viewModel.automaticallyStopServiceDateIsInThePast.observeNonNull(this) {
+            Toast.makeText(this, R.string.main_automaticallyStopServiceDialog_dateIsInThePast, Toast.LENGTH_LONG).show()
         }
     }
 

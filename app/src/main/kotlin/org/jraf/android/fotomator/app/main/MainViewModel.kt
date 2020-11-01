@@ -32,6 +32,7 @@ import androidx.lifecycle.map
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
+import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.log.Log
 import java.text.DateFormat
 import java.util.Calendar
@@ -51,6 +52,7 @@ class MainViewModel @ViewModelInject constructor(
     val showAutomaticallyStopServiceDialog = MutableLiveData<Unit?>()
     val showAutomaticallyStopServiceDatePicker = MutableLiveData<Unit?>()
     val showAutomaticallyStopServiceTimePicker = MutableLiveData<Unit?>()
+    val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
 
     val automaticallyStopServiceDateTimeFormatted = prefs.automaticallyStopServiceDateTime.map { automaticallyStopServiceDateTime ->
         if (automaticallyStopServiceDateTime == null) {
@@ -67,14 +69,12 @@ class MainViewModel @ViewModelInject constructor(
         Log.d("isChecked=$isChecked")
 
         if (isChecked) {
-            showAutomaticallyStopServiceDialog.value = Unit
-            showAutomaticallyStopServiceDialog.value = null
+            showAutomaticallyStopServiceDialog.fireAndForget()
         }
     }
 
     fun onChannelClick() {
-        pickSlackChannel.value = Unit
-        pickSlackChannel.value = null
+        pickSlackChannel.fireAndForget()
     }
 
     fun onAutomaticallyStopServiceDatePicked(timestamp: Long?) {
@@ -84,7 +84,7 @@ class MainViewModel @ViewModelInject constructor(
             prefs.automaticallyStopServiceDateTime.value = null
             return
         }
-        showAutomaticallyStopServiceTimePicker.value = Unit
+        showAutomaticallyStopServiceTimePicker.fireAndForget()
     }
 
     fun onAutomaticallyStopServiceTimePicked(hour: Int?, minute: Int?) {
@@ -99,10 +99,15 @@ class MainViewModel @ViewModelInject constructor(
             set(Calendar.MINUTE, minute)
         }
         Log.d("calendar=$calendar")
-        prefs.automaticallyStopServiceDateTime.value = calendar.time.time
+        if (calendar.timeInMillis <= System.currentTimeMillis()) {
+            prefs.automaticallyStopServiceDateTime.value = null
+            automaticallyStopServiceDateIsInThePast.fireAndForget()
+        } else {
+            prefs.automaticallyStopServiceDateTime.value = calendar.time.time
+        }
     }
 
     fun onAutomaticallyStopServiceDateTimeClick() {
-        showAutomaticallyStopServiceDatePicker.value = Unit
+        showAutomaticallyStopServiceDatePicker.fireAndForget()
     }
 }

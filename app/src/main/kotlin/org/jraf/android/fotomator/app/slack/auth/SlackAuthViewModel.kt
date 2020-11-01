@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.log.Log
 
 class SlackAuthViewModel @ViewModelInject constructor(
@@ -102,8 +103,7 @@ class SlackAuthViewModel @ViewModelInject constructor(
      }
 
     private fun showToast(@StringRes resId: Int) {
-        toast.value = resId
-        toast.value = null
+        toast.fireAndForget(resId)
     }
 
     companion object {

@@ -23,6 +23,7 @@
     <string name="main_automaticallyStopServiceDialog_message">New photos will automatically be posted from now on.\nYou can stop Fotomator manually, or schedule a date/time to automatically stop.</string>
     <string name="main_automaticallyStopServiceDialog_positive">Set a date/time</string>
     <string name="main_automaticallyStopServiceDialog_negative">Manually</string>
+    <string name="main_automaticallyStopServiceDialog_dateIsInThePast">The selected date/time has already passed! Please try again.</string>
 
     <!-- Slack auth -->
     <string name="slack_auth_title">Slack authentication</string>

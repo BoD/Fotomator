@@ -32,6 +32,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.util.fireAndForget
 
 class SlackPickChannelViewModel @ViewModelInject constructor(
     private val slackClient: SlackClient,
@@ -58,7 +59,6 @@ class SlackPickChannelViewModel @ViewModelInject constructor(
     }
 
     private fun showToast(@StringRes resId: Int) {
-        toast.value = resId
-        toast.value = null
+        toast.fireAndForget(resId)
     }
 }

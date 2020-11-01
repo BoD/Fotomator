@@ -33,6 +33,7 @@ import androidx.databinding.DataBindingUtil
 import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.databinding.SlackPickChannelActivityBinding
+import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 
 @AndroidEntryPoint
@@ -58,8 +59,8 @@ class SlackPickChannelActivity : AppCompatActivity() {
             adapter.submitList(channelList.map { SlackChannelUiModel(it) })
         }
 
-        viewModel.toast.observe(this) { resId: Int? ->
-            if (resId != null) Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+        viewModel.toast.observeNonNull(this) { resId ->
+            Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
         }
 
         viewModel.finishWithError.observe(this) {
