@@ -4,7 +4,7 @@
     <!-- Main -->
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
-    <string name="main_channel">Posting to #%1$s</string>
+    <string name="main_channel">Sharing to #%1$s</string>
     <string name="main_automaticallyStopServiceDateTime_notSet">End date not set</string>
     <string name="main_automaticallyStopServiceDateTime_set">Will stop on %1$s</string>
 
@@ -15,12 +15,12 @@
     <string name="main_permissionNotGrantedDialog_positive">System settings</string>
     <string name="main_permissionNotGrantedDialog_negative">Quit</string>
 
-    <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and upload the photos.</string>
+    <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and share the photos.</string>
     <string name="main_permissionShowRationaleDialog_positive">OK</string>
     <string name="main_menu_about">About…</string>
 
     <string name="main_automaticallyStopServiceDialog_title">When to stop?</string>
-    <string name="main_automaticallyStopServiceDialog_message">New photos will automatically be posted from now on.\nYou can stop Fotomator manually, or schedule a date/time to automatically stop.</string>
+    <string name="main_automaticallyStopServiceDialog_message">New photos will automatically be shared from now on.\nYou can stop Fotomator manually, or schedule a date/time to automatically stop.</string>
     <string name="main_automaticallyStopServiceDialog_positive">Set a date/time</string>
     <string name="main_automaticallyStopServiceDialog_negative">Manually</string>
     <string name="main_automaticallyStopServiceDialog_dateIsInThePast">The selected date/time has already passed! Please try again.</string>
@@ -40,21 +40,21 @@
     <string name="notification_channel_main_description">Main channel</string>
 
     <string name="notification_service_title">Fotomator is ON</string>
-    <string name="notification_service_text_withoutEndDate">New photos will automatically be posted</string>
-    <string name="notification_service_text_withEndDate">New photos will automatically be posted until %1$s</string>
+    <string name="notification_service_text_withoutEndDate">New photos will automatically be shared</string>
+    <string name="notification_service_text_withEndDate">New photos will automatically be shared until %1$s</string>
     <string name="notification_service_action_stop">Stop Fotomator</string>
 
     <string name="notification_scheduled_title">New photo</string>
-    <string name="notification_scheduled_text">This photo will be posted in %1$s</string>
+    <string name="notification_scheduled_text">This photo will be shared in %1$s</string>
     <plurals name="notification_scheduled_text_delay">
         <item quantity="one">%1$s minute</item>
         <item quantity="other">%1$s minutes</item>
     </plurals>
-    <string name="notification_scheduled_action_optOut">Don\'t upload this one</string>
-    <string name="notification_scheduled_action_uploadImmediately">Upload immediately</string>
+    <string name="notification_scheduled_action_optOut">Don\'t share this one</string>
+    <string name="notification_scheduled_action_uploadImmediately">Share immediately</string>
 
-    <string name="notification_uploading_title">Uploading photo…</string>
-    <string name="notification_uploading_text">This photo is being uploaded…</string>
+    <string name="notification_uploading_title">Sharing photo…</string>
+    <string name="notification_uploading_text">This photo is being shared…</string>
 
     <!-- About -->
     <string name="about_title">About</string>
@@ -67,7 +67,7 @@
     <string name="about_sources_uri" translatable="false">https://github.com/BoD/Fotomator/</string>
     <string name="about_sources_text">Source code on Github</string>
     <string name="about_shareText_subject">Checkout out this app!</string>
-    <string name="about_shareText_body">This app automatically posts photos to Slack as you take them!\nCheck it out
+    <string name="about_shareText_body">Auto-share photos to Slack as you take them. Great for parties and events!!\nCheck it out
         here:\nhttps://play.google.com/store/apps/details?id=%s
     </string>
 
