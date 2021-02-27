@@ -140,8 +140,8 @@ dependencies {
 
     // JRAF
     implementation("org.jraf", "kprefs", Versions.KPREFS)
-//    implementation("com.github.BoD", "jraf-android-util", "-SNAPSHOT")
-    implementation("org.jraf", "jraf-android-util", "1.0.0")
+    implementation("com.github.BoD", "jraf-android-util", "-SNAPSHOT")
+//    implementation("org.jraf", "jraf-android-util", "1.0.0")
 
     // Retrofit / Moshi
     implementation("com.squareup.retrofit2", "retrofit", Versions.RETROFIT)

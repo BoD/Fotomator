@@ -25,16 +25,18 @@
 package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.annotation.StringRes
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
+import javax.inject.Inject
 
-class SlackPickChannelViewModel @ViewModelInject constructor(
+@HiltViewModel
+class SlackPickChannelViewModel @Inject constructor(
     private val slackClient: SlackClient,
 ) : ViewModel() {
 

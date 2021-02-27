@@ -25,10 +25,10 @@
 package org.jraf.android.fotomator.app.main
 
 import android.content.Context
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
@@ -37,8 +37,10 @@ import org.jraf.android.util.log.Log
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
+import javax.inject.Inject
 
-class MainViewModel @ViewModelInject constructor(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val prefs: AppPrefs
 ) : AndroidViewModel(context.applicationContext as android.app.Application) {

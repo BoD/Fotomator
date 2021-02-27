@@ -28,9 +28,9 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -39,8 +39,10 @@ import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.log.Log
+import javax.inject.Inject
 
-class SlackAuthViewModel @ViewModelInject constructor(
+@HiltViewModel
+class SlackAuthViewModel @Inject constructor(
     private val application: Application,
     private val prefs: AppPrefs,
     private val slackClient: SlackClient
@@ -97,10 +99,10 @@ class SlackAuthViewModel @ViewModelInject constructor(
         }
     }
 
-     fun setLoading(loading: Boolean) {
-         isLoadingVisible.value = loading
-         isStartSlackAuthButtonVisible.value = !loading
-     }
+    fun setLoading(loading: Boolean) {
+        isLoadingVisible.value = loading
+        isStartSlackAuthButtonVisible.value = !loading
+    }
 
     private fun showToast(@StringRes resId: Int) {
         toast.fireAndForget(resId)

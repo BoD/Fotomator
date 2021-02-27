@@ -29,8 +29,8 @@ import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.AuthTokenProvider
@@ -38,7 +38,7 @@ import org.jraf.android.fotomator.upload.client.SlackClient
 import javax.inject.Singleton
 
 @Module
-@InstallIn(ApplicationComponent::class)
+@InstallIn(SingletonComponent::class)
 object AppModule {
     @Provides
     @Singleton
