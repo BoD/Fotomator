@@ -6,6 +6,8 @@ plugins {
 
 buildscript {
     repositories {
+        mavenLocal()
+        mavenCentral()
         google()
         jcenter()
     }
@@ -22,6 +24,7 @@ buildscript {
 allprojects {
     repositories {
         mavenLocal()
+        mavenCentral()
         google()
         jcenter()
         maven("https://jitpack.io")
@@ -51,7 +54,7 @@ tasks {
         resolutionStrategy {
             componentSelection {
                 all {
-                    if (setOf("alpha", /*"beta", "rc",*/ "preview", "eap", "m1").any { candidate.version.contains(it, true) }) {
+                    if (setOf("alpha", "beta", "rc", "preview", "eap", "m1").any { candidate.version.contains(it, true) }) {
                         reject("Non stable")
                     }
                 }
