@@ -48,8 +48,7 @@ class SlackAuthViewModel @Inject constructor(
     private val slackClient: SlackClient
 ) : ViewModel() {
 
-    val isLoadingVisible = MutableLiveData(false)
-    val isStartSlackAuthButtonVisible = MutableLiveData(true)
+    val isLoading = MutableLiveData(false)
     val toast = MutableLiveData<Int?>()
     val finishWithSuccess = MutableLiveData<Unit>()
 
@@ -100,8 +99,7 @@ class SlackAuthViewModel @Inject constructor(
     }
 
     fun setLoading(loading: Boolean) {
-        isLoadingVisible.value = loading
-        isStartSlackAuthButtonVisible.value = !loading
+        isLoading.value = loading
     }
 
     private fun showToast(@StringRes resId: Int) {
