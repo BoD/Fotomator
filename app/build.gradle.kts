@@ -69,7 +69,7 @@ android {
         compose = true
     }
 
-    lintOptions {
+    lint {
         isAbortOnError = true
         textReport = true
         isIgnoreWarnings = true
@@ -82,6 +82,12 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
+
+        // Suppress warnings about using higher versions of Kotlin than Compose has been tested with
+        freeCompilerArgs = freeCompilerArgs + arrayOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+        )
     }
 
     composeOptions {

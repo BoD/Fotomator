@@ -44,6 +44,7 @@
             android:text="@{viewModel.isServiceEnabledLiveData ? @string/main_service_switch_enabled : @string/main_service_switch_disabled}"
             android:textAppearance="?android:textAppearanceMedium"
             android:textColor="?android:textColorPrimary"
+            tools:text="@string/main_service_switch_enabled"
             app:layout_constraintBottom_toTopOf="@+id/txtChannel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

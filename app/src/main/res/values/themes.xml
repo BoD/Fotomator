@@ -7,6 +7,7 @@
         <item name="colorControlHighlight">@color/colorPrimaryAlpha</item>
         <item name="android:colorEdgeEffect">@color/colorPrimary</item>
         <item name="textAppearanceButton">@style/TextAppearance.Fotomator.Button</item>
+        <item name="android:statusBarColor">@color/statusBarColor</item>
     </style>
 
     <style name="Theme.Fotomator.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
