@@ -67,10 +67,11 @@ class MainViewModel @Inject constructor(
 
     private var automaticallyStopServiceDatePicked: Long? = null
 
-    fun onServiceEnabledSwitchClick(isChecked: Boolean) {
-        Log.d("isChecked=$isChecked")
-
-        if (isChecked) {
+    fun onServiceEnabledSwitchClick() {
+        isServiceEnabledLiveData.value = !isServiceEnabledLiveData.value!!
+        val serviceEnabled = isServiceEnabledLiveData.value!!
+        Log.d("serviceEnabled=$serviceEnabled")
+        if (serviceEnabled) {
             showAutomaticallyStopServiceDialog.fireAndForget()
         }
     }

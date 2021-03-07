@@ -33,42 +33,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.format.DateFormat
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Switch
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.os.postDelayed
 import com.google.android.material.datepicker.CalendarConstraints
@@ -81,7 +53,6 @@ import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
-import org.jraf.android.fotomator.theme.FotomatorTheme
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.about.AboutActivityIntentBuilder
 import org.jraf.android.util.dialog.AlertDialogFragment
@@ -100,121 +71,20 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             val isServiceEnabled by viewModel.isServiceEnabledLiveData.observeAsState(false)
             val slackChannel by viewModel.slackChannelLiveData.observeAsState()
             val automaticallyStopServiceDateTimeFormatted by viewModel.automaticallyStopServiceDateTimeFormatted.observeAsState("")
-            Screen(
+            MainLayout(
                 isServiceEnabled = isServiceEnabled,
                 slackChannel = slackChannel,
                 automaticallyStopServiceDateTimeFormatted = automaticallyStopServiceDateTimeFormatted,
-                onServiceEnabledCheckedChange = { serviceEnabledChecked ->
-                    viewModel.isServiceEnabledLiveData.value = serviceEnabledChecked
-                    viewModel.onServiceEnabledSwitchClick(serviceEnabledChecked)
-                }
+                onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
+                onAboutClick = ::onAboutClick,
+                onChannelClick = viewModel::onChannelClick,
+                onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick
             )
         }
 
         observeUi()
 
         checkPermissions()
-    }
-
-    @Composable
-    fun Screen(
-        isServiceEnabled: Boolean,
-        slackChannel: String?,
-        automaticallyStopServiceDateTimeFormatted: String,
-        onServiceEnabledCheckedChange: (Boolean) -> Unit,
-    ) {
-        FotomatorTheme {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Image(
-                                painter = painterResource(R.drawable.logo_full_white),
-                                contentDescription = null
-                            )
-                        },
-                    )
-                },
-                content = {
-                    Content(
-                        isServiceEnabled,
-                        slackChannel,
-                        automaticallyStopServiceDateTimeFormatted,
-                        onServiceEnabledCheckedChange,
-                    )
-                }
-            )
-        }
-    }
-
-    @Composable
-    private fun Content(
-        isServiceEnabled: Boolean,
-        slackChannel: String?,
-        automaticallyStopServiceDateTimeFormatted: String,
-        onServiceEnabledCheckedChange: (Boolean) -> Unit,
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.animateContentSize(),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                    .clip(MaterialTheme.shapes.small)
-                    .clickable { onServiceEnabledCheckedChange(!isServiceEnabled) }
-                    .padding(16.dp)
-                ) {
-                    Text(
-                        stringResource(if (isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
-                        style = MaterialTheme.typography.body1,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Switch(
-                        checked = isServiceEnabled,
-                        onCheckedChange = onServiceEnabledCheckedChange,
-                        modifier = Modifier.clickable(enabled = false) {}
-                    )
-                }
-
-                if (slackChannel != null) {
-                    Spacer(Modifier.height(16.dp))
-
-                    OutlinedButton(onClick = { /*TODO*/ }, enabled = isServiceEnabled) {
-                        Text(stringResource(R.string.main_channel, slackChannel), letterSpacing = 0.sp)
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    OutlinedButton(onClick = { /*TODO*/ }, enabled = isServiceEnabled) {
-                        Text(automaticallyStopServiceDateTimeFormatted, letterSpacing = 0.sp)
-                    }
-                }
-            }
-        }
-    }
-
-    @Preview
-    @Composable
-    fun LayoutPreview() {
-        Screen(
-            isServiceEnabled = true,
-            slackChannel = "test",
-            automaticallyStopServiceDateTimeFormatted = "Stop on Oct. 11 at 1:30 PM",
-            onServiceEnabledCheckedChange = {}
-        )
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        onAboutClicked()
-        return super.onOptionsItemSelected(item)
     }
 
     private fun observeUi() {
@@ -379,7 +249,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
     override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
 
-    private fun onAboutClicked() {
+    private fun onAboutClick() {
         startActivity(
             AboutActivityIntentBuilder()
                 .setAppName(getString(R.string.app_name))
