@@ -143,7 +143,7 @@ dependencies {
     implementation("androidx.room", "room-ktx", Versions.ANDROIDX_ROOM)
     implementation("androidx.constraintlayout", "constraintlayout", Versions.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation("androidx.work", "work-runtime-ktx", Versions.ANDROIDX_WORK_MANAGER)
-    implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT)
+    implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT_LIFECYCLE_VIEWMODEL)
     kapt("androidx.hilt", "hilt-compiler", Versions.ANDROIDX_HILT)
 
     // Material
