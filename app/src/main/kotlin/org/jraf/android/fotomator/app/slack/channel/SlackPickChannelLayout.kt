@@ -24,40 +24,49 @@
  */
 @file:OptIn(ExperimentalAnimationApi::class)
 
-package org.jraf.android.fotomator.app.slack.auth
+package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ListItem
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import org.jraf.android.fotomator.R
+import androidx.compose.ui.unit.dp
 import org.jraf.android.fotomator.theme.FotomatorTheme
 
 @Composable
-fun SlackAuthLayout(
-    isLoading: Boolean,
-    onStartAuthenticationClick: () -> Unit,
+fun SlackPickChannelLayout(
+    state: SlackPickChannelLayoutState,
+    onChannelClick: (String) -> Unit,
 ) {
     FotomatorTheme {
-        // TODO The Crossfade is on the whole screen (Box fillMaxSize twice), instead of its contents
-        // TODO otherwise there's a misalignment happening when fading - not sure why.
-        Crossfade(isLoading) { isLoading ->
+        Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
             if (isLoading) {
                 Box(Modifier.fillMaxSize(), Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Button(onStartAuthenticationClick) {
-                        Text(stringResource(R.string.slack_auth_button))
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxSize(),
+                ) {
+                    items((state as SlackPickChannelLayoutState.Loaded).channelList) { channel ->
+                        ChannelRow(channel, onClick = {
+                            onChannelClick(channel)
+                        })
                     }
                 }
             }
@@ -65,21 +74,39 @@ fun SlackAuthLayout(
     }
 }
 
-
-@Preview
 @Composable
-fun SlackAuthLayoutNotLoadingPreview() {
-    SlackAuthLayout(
-        isLoading = false,
-        onStartAuthenticationClick = {}
+@OptIn(ExperimentalMaterialApi::class)
+fun ChannelRow(channel: String, onClick: () -> Unit) = Surface {
+    ListItem(
+        text = {
+            Text("# $channel")
+        },
+        modifier = Modifier.clickable(onClick = onClick)
     )
 }
 
 @Preview
 @Composable
-fun SlackAuthLayoutLoadingPreview() {
-    SlackAuthLayout(
-        isLoading = true,
-        onStartAuthenticationClick = {}
+fun SlackPickChannelLayoutNotLoadingPreview() {
+    SlackPickChannelLayout(
+        state = SlackPickChannelLayoutState.Loading,
+        onChannelClick = {}
     )
+}
+
+@Preview
+@Composable
+fun SlackPickChannelLayoutLoadingPreview() {
+    SlackPickChannelLayout(
+        state = SlackPickChannelLayoutState.Loaded(
+            listOf("abcd", "test", "android")
+                    + List(42) { "channel$it" }
+        ),
+        onChannelClick = {}
+    )
+}
+
+sealed class SlackPickChannelLayoutState {
+    object Loading : SlackPickChannelLayoutState()
+    data class Loaded(val channelList: List<String>) : SlackPickChannelLayoutState()
 }

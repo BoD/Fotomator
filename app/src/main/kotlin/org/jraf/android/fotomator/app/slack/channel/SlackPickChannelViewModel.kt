@@ -40,25 +40,20 @@ class SlackPickChannelViewModel @Inject constructor(
     private val slackClient: SlackClient,
 ) : ViewModel() {
 
-    val isLoadingVisible = MutableLiveData(true)
     val toast = MutableLiveData<Int?>()
     val finishWithError = MutableLiveData<Unit>()
 
-    val channelList: LiveData<List<String>> = liveData {
-        setLoading(true)
+    val layoutState: LiveData<SlackPickChannelLayoutState> = liveData {
+        emit(SlackPickChannelLayoutState.Loading)
         val channelList = slackClient.getChannelList()
-        setLoading(false)
         if (channelList == null) {
             showToast(R.string.slack_pick_channel_failed)
             finishWithError.value = Unit
         } else {
-            emit(channelList)
+            emit(SlackPickChannelLayoutState.Loaded(channelList))
         }
     }
 
-    private fun setLoading(loading: Boolean) {
-        isLoadingVisible.value = loading
-    }
 
     private fun showToast(@StringRes resId: Int) {
         toast.fireAndForget(resId)
