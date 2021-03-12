@@ -22,10 +22,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client
+package org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response
 
-typealias AuthToken = String
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-interface AuthTokenProvider {
-    fun getAuthToken(): AuthToken
-}
+@JsonClass(generateAdapter = true)
+data class SlackApiOauthAccessResponse(
+    val ok: Boolean,
+
+    @Json(name = "authed_user")
+    val authedUser: SlackApiAuthedUser?,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiAuthedUser(
+    @Json(name = "access_token")
+    val accessToken: String?,
+)

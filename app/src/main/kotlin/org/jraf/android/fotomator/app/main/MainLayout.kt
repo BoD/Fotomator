@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
@@ -43,6 +44,7 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -71,6 +73,9 @@ fun MainLayout(
     onAboutClick: () -> Unit,
     onChannelClick: () -> Unit,
     onAutomaticallyStopServiceDateTimeClick: () -> Unit,
+    isAutomaticallyStopServiceDialogVisible: Boolean,
+    onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit,
+    onAutomaticallyStopServiceDialogManuallyClick: () -> Unit,
 ) {
     FotomatorTheme {
         Scaffold(
@@ -111,6 +116,10 @@ fun MainLayout(
                     onChannelClick,
                     onAutomaticallyStopServiceDateTimeClick,
                 )
+
+                if (isAutomaticallyStopServiceDialogVisible) {
+                    AutomaticallyStopServiceDialog(onAutomaticallyStopServiceDialogManuallyClick, onAutomaticallyStopServiceDialogSetDateTimeClick)
+                }
             }
         )
     }
@@ -131,7 +140,6 @@ private fun MainContent(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.small)
                     .clickable(onClick = onServiceEnabledClick)
@@ -140,11 +148,13 @@ private fun MainContent(
                 Text(
                     stringResource(if (isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
                     style = MaterialTheme.typography.body1,
+                    modifier = Modifier.alignByBaseline()
                 )
                 Spacer(Modifier.width(8.dp))
                 Switch(
                     checked = isServiceEnabled,
                     onCheckedChange = null,
+                    modifier = Modifier.alignByBaseline()
                 )
             }
 
@@ -162,9 +172,33 @@ private fun MainContent(
     }
 }
 
+@Composable
+private fun AutomaticallyStopServiceDialog(
+    onAutomaticallyStopServiceDialogManuallyClick: () -> Unit,
+    onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit
+) = AlertDialog(
+    onDismissRequest = onAutomaticallyStopServiceDialogManuallyClick,
+    title = {
+        Text(stringResource(R.string.main_automaticallyStopServiceDialog_title))
+    },
+    text = {
+        Text(stringResource(R.string.main_automaticallyStopServiceDialog_message))
+    },
+    confirmButton = {
+        TextButton(onClick = onAutomaticallyStopServiceDialogSetDateTimeClick) {
+            Text(stringResource(R.string.main_automaticallyStopServiceDialog_positive))
+        }
+    },
+    dismissButton = {
+        TextButton(onClick = onAutomaticallyStopServiceDialogManuallyClick) {
+            Text(stringResource(R.string.main_automaticallyStopServiceDialog_negative))
+        }
+    }
+)
+
 @Preview
 @Composable
-fun MainLayoutPreview() {
+private fun MainLayoutPreview() {
     MainLayout(
         isServiceEnabled = true,
         slackChannel = "test",
@@ -173,5 +207,12 @@ fun MainLayoutPreview() {
         onAboutClick = {},
         onChannelClick = {},
         onAutomaticallyStopServiceDateTimeClick = {},
+        isAutomaticallyStopServiceDialogVisible = false,
+        onAutomaticallyStopServiceDialogSetDateTimeClick = {},
+        onAutomaticallyStopServiceDialogManuallyClick = {},
     )
 }
+
+@Preview
+@Composable
+private fun AutomaticallyStopServiceDialogPreview() = AutomaticallyStopServiceDialog({}, {})

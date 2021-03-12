@@ -22,28 +22,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client.retrofit.apimodels.response
+package org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response
 
-import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class ConversationsListResponse(
-    val ok: Boolean,
-
-    val channels: List<Channel>,
-
-    @Json(name = "response_metadata")
-    val responseMetadata: ResponseMetadata?,
-)
-
-@JsonClass(generateAdapter = true)
-data class Channel(
-    val name: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class ResponseMetadata(
-    @Json(name = "next_cursor")
-    val nextCursor: String?,
+data class SlackApiFileUploadResponse(
+    val ok: Boolean
 )

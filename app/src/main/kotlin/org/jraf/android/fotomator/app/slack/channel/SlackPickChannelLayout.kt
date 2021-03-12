@@ -30,8 +30,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
@@ -42,14 +43,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jraf.android.fotomator.theme.FotomatorTheme
+import org.jraf.android.fotomator.upload.client.slack.SlackChannel
 
 @Composable
 fun SlackPickChannelLayout(
     state: SlackPickChannelLayoutState,
-    onChannelClick: (String) -> Unit,
+    onChannelClick: (SlackChannel) -> Unit,
 ) {
     FotomatorTheme {
         Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
@@ -58,15 +61,17 @@ fun SlackPickChannelLayout(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxSize(),
-                ) {
-                    items((state as SlackPickChannelLayoutState.Loaded).channelList) { channel ->
-                        ChannelRow(channel, onClick = {
-                            onChannelClick(channel)
-                        })
+                Surface {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        item { Spacer(Modifier.height(8.dp)) }
+                        items((state as SlackPickChannelLayoutState.Loaded).channelList) { channel ->
+                            ChannelRow(channel, onClick = {
+                                onChannelClick(channel)
+                            })
+                        }
+                        item { Spacer(Modifier.height(8.dp)) }
                     }
                 }
             }
@@ -76,14 +81,22 @@ fun SlackPickChannelLayout(
 
 @Composable
 @OptIn(ExperimentalMaterialApi::class)
-fun ChannelRow(channel: String, onClick: () -> Unit) = Surface {
-    ListItem(
-        text = {
-            Text("# $channel")
-        },
-        modifier = Modifier.clickable(onClick = onClick)
-    )
-}
+fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
+    text = {
+        Text("# ${channel.name}")
+    },
+    secondaryText = when {
+        channel.topic != null -> {
+            { Text(channel.topic, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+        }
+        channel.purpose != null -> {
+            { Text(channel.purpose, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+        }
+        else -> null
+    },
+    modifier = Modifier.clickable(onClick = onClick),
+)
+
 
 @Preview
 @Composable
@@ -99,8 +112,13 @@ fun SlackPickChannelLayoutNotLoadingPreview() {
 fun SlackPickChannelLayoutLoadingPreview() {
     SlackPickChannelLayout(
         state = SlackPickChannelLayoutState.Loaded(
-            listOf("abcd", "test", "android")
-                    + List(42) { "channel$it" }
+            listOf(
+                SlackChannel(name = "abcd", topic = "This channel is for fun and or work", purpose = "This channel has a purpose"),
+                SlackChannel(name = "test", topic = "I have a topic!", purpose = null),
+                SlackChannel(name = "android", topic = null, purpose = "I have no purpose in life"),
+                SlackChannel(name = "why-not", topic = null, purpose = null),
+            )
+                    + List(42) { SlackChannel("channel$it", null, null) }
         ),
         onChannelClick = {}
     )
@@ -108,5 +126,5 @@ fun SlackPickChannelLayoutLoadingPreview() {
 
 sealed class SlackPickChannelLayoutState {
     object Loading : SlackPickChannelLayoutState()
-    data class Loaded(val channelList: List<String>) : SlackPickChannelLayoutState()
+    data class Loaded(val channelList: List<SlackChannel>) : SlackPickChannelLayoutState()
 }

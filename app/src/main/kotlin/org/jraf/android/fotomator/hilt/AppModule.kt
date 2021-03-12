@@ -33,8 +33,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.jraf.android.fotomator.data.Database
 import org.jraf.android.fotomator.prefs.AppPrefs
-import org.jraf.android.fotomator.upload.client.AuthTokenProvider
-import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.upload.client.slack.AuthTokenProvider
+import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import javax.inject.Singleton
 
 @Module

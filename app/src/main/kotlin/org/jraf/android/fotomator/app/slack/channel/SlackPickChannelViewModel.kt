@@ -31,7 +31,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.jraf.android.fotomator.R
-import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
 import javax.inject.Inject
 

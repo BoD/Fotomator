@@ -49,9 +49,9 @@ class SlackPickChannelActivity : AppCompatActivity() {
             val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)
             SlackPickChannelLayout(
                 state = layoutState,
-                onChannelClick = { channelName ->
-                    Log.d("channelName=$channelName")
-                    setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channelName))
+                onChannelClick = { channel ->
+                    Log.d("channel=$channel")
+                    setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channel.name))
                     finish()
                 }
             )

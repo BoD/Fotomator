@@ -41,7 +41,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
-import androidx.core.os.postDelayed
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
@@ -56,7 +55,6 @@ import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.about.AboutActivityIntentBuilder
 import org.jraf.android.util.dialog.AlertDialogFragment
 import org.jraf.android.util.dialog.AlertDialogListener
-import org.jraf.android.util.handler.HandlerUtil
 import org.jraf.android.util.log.Log
 
 @AndroidEntryPoint
@@ -70,6 +68,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             val isServiceEnabled by viewModel.isServiceEnabledLiveData.observeAsState(false)
             val slackChannel by viewModel.slackChannelLiveData.observeAsState()
             val automaticallyStopServiceDateTimeFormatted by viewModel.automaticallyStopServiceDateTimeFormatted.observeAsState("")
+            val isAutomaticallyStopServiceDialogVisible by viewModel.isAutomaticallyStopServiceDialogVisible.observeAsState(false)
             MainLayout(
                 isServiceEnabled = isServiceEnabled,
                 slackChannel = slackChannel,
@@ -77,7 +76,10 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
                 onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
                 onAboutClick = ::onAboutClick,
                 onChannelClick = viewModel::onChannelClick,
-                onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick
+                onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick,
+                isAutomaticallyStopServiceDialogVisible = isAutomaticallyStopServiceDialogVisible,
+                onAutomaticallyStopServiceDialogSetDateTimeClick = viewModel::onAutomaticallyStopServiceDialogSetDateTimeClick,
+                onAutomaticallyStopServiceDialogManuallyClick = viewModel::onAutomaticallyStopServiceDialogManuallyClick,
             )
         }
 
@@ -98,10 +100,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         viewModel.pickSlackChannel.observeNonNull(this) {
             setupSlackChannel()
-        }
-
-        viewModel.showAutomaticallyStopServiceDialog.observeNonNull(this) {
-            showAutomaticallyStopServiceDialog()
         }
 
         viewModel.showAutomaticallyStopServiceDatePicker.observeNonNull(this) {
@@ -235,7 +233,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
                 startActivity(intent)
                 finish()
             }
-            DIALOG_AUTOMATICALLY_STOP_SERVICE -> viewModel.showAutomaticallyStopServiceDatePicker.value = Unit
         }
     }
 
@@ -271,18 +268,18 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     // region Automatically stop service date/time.
     //--------------------------------------------------------------------------
 
-    private fun showAutomaticallyStopServiceDialog() {
-        Log.d()
-        // Wait a few milliseconds for the switch animation to have time to run
-        HandlerUtil.getMainHandler().postDelayed(300L) {
-            AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
-                .title(R.string.main_automaticallyStopServiceDialog_title)
-                .message(R.string.main_automaticallyStopServiceDialog_message)
-                .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
-                .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
-                .show(this)
-        }
-    }
+//    private fun showAutomaticallyStopServiceDialog() {
+//        Log.d()
+//        // Wait a few milliseconds for the switch animation to have time to run
+//        HandlerUtil.getMainHandler().postDelayed(300L) {
+//            AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
+//                .title(R.string.main_automaticallyStopServiceDialog_title)
+//                .message(R.string.main_automaticallyStopServiceDialog_message)
+//                .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
+//                .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
+//                .show(this)
+//        }
+//    }
 
     private fun showAutomaticallyStopServiceDatePicker() {
         if (supportFragmentManager.findFragmentByTag(DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE) != null) return
@@ -333,7 +330,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         private const val DIALOG_NO_PERMISSION = 0
         private const val DIALOG_SHOW_RATIONALE = 1
-        private const val DIALOG_AUTOMATICALLY_STOP_SERVICE = 2
         private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE = "DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE"
         private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME = "DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME"
     }

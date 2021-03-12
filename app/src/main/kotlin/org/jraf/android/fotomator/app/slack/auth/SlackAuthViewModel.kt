@@ -36,7 +36,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
-import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.log.Log
 import javax.inject.Inject
