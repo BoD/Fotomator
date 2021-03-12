@@ -24,10 +24,12 @@
  */
 package org.jraf.android.fotomator.app.slack.auth
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -85,5 +87,12 @@ class SlackAuthActivity : AppCompatActivity() {
         }
         fromNewIntent = false
         Log.d()
+    }
+
+    companion object {
+        val CONTRACT = object : ActivityResultContract<Unit, Boolean>() {
+            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackAuthActivity::class.java)
+            override fun parseResult(resultCode: Int, intent: Intent?) = resultCode == RESULT_OK
+        }
     }
 }

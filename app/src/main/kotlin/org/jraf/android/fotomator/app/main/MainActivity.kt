@@ -25,7 +25,6 @@
 package org.jraf.android.fotomator.app.main
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -36,7 +35,7 @@ import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -127,9 +126,9 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         }
     }
 
-    private val setupSlackAuthLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+    private val setupSlackAuthLauncher = registerForActivityResult(SlackAuthActivity.CONTRACT) { result ->
         Log.d("result=$result")
-        if (result.resultCode != Activity.RESULT_OK) {
+        if (!result) {
             if (viewModel.slackAuthToken == null) {
                 Log.d("User refuses to setup Slack auth: finish")
                 finish()
@@ -139,15 +138,14 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         }
     }
 
-    private val pickSlackChannelLauncher = registerForActivityResult(StartActivityForResult()) { result ->
-        Log.d("result=$result")
-        if (result.resultCode != Activity.RESULT_OK) {
+    private val pickSlackChannelLauncher = registerForActivityResult(SlackPickChannelActivity.CONTRACT) { pickedChannel ->
+        Log.d("pickedChannel=$pickedChannel")
+        if (pickedChannel == null) {
             if (viewModel.slackChannel == null) {
-                Log.d("User refuses to setup Slack channel: finish")
+                Log.d("User didn't pick a Slack channel: finish")
                 finish()
             }
         } else {
-            val pickedChannel = SlackPickChannelActivity.getPickedChannelName(result.data!!)
             viewModel.slackChannel = pickedChannel
         }
     }
@@ -200,11 +198,11 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private fun setupSlackAuth() {
-        setupSlackAuthLauncher.launch(Intent(this, SlackAuthActivity::class.java))
+        setupSlackAuthLauncher.launch()
     }
 
     private fun setupSlackChannel() {
-        pickSlackChannelLauncher.launch(Intent(this, SlackPickChannelActivity::class.java))
+        pickSlackChannelLauncher.launch()
     }
 
 

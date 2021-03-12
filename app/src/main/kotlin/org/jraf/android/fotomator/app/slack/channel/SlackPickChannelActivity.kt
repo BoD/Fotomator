@@ -24,10 +24,12 @@
  */
 package org.jraf.android.fotomator.app.slack.channel
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -68,6 +70,9 @@ class SlackPickChannelActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_CHANNEL_NAME = "EXTRA_CHANNEL_NAME"
 
-        fun getPickedChannelName(intent: Intent): String? = intent.getStringExtra(EXTRA_CHANNEL_NAME)
+        val CONTRACT = object : ActivityResultContract<Unit, String?>() {
+            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackPickChannelActivity::class.java)
+            override fun parseResult(resultCode: Int, intent: Intent?) = intent?.getStringExtra(EXTRA_CHANNEL_NAME)
+        }
     }
 }
