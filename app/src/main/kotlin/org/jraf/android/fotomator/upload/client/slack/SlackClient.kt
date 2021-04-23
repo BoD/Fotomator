@@ -7,7 +7,7 @@
  *                              /___/
  * repository.
  *
- * Copyright (C) 2020-present Benoit 'BoD' Lubek (BoD@JRAF.org)
+ * Copyright (C) 2021-present Benoit 'BoD' Lubek (BoD@JRAF.org)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client
+package org.jraf.android.fotomator.upload.client.slack
 
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import org.jraf.android.fotomator.upload.client.retrofit.SlackRetrofitService
-import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.ConversationsListResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.SlackRetrofitService
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiChannel
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
 import org.jraf.android.util.log.Log
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -80,18 +81,18 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         }
     }
 
-    suspend fun getChannelList(): List<String>? {
-        val res = mutableListOf<String>()
-        var conversationsListResponse: ConversationsListResponse? = null
+    suspend fun getChannelList(): List<SlackChannel>? {
+        val res = mutableListOf<SlackChannel>()
+        var slackApiConversationsListResponse: SlackApiConversationsListResponse? = null
         return try {
             do {
-                conversationsListResponse = service.conversationsList(
+                slackApiConversationsListResponse = service.conversationsList(
                     authorization = getAuthorizationHeader(),
-                    cursor = conversationsListResponse?.responseMetadata?.nextCursor?.ifEmpty { null }
+                    cursor = slackApiConversationsListResponse?.responseMetadata?.nextCursor?.ifEmpty { null }
                 )
-                res += conversationsListResponse.channels.map { it.name }
-            } while (!conversationsListResponse?.responseMetadata?.nextCursor.isNullOrEmpty())
-            res.sorted()
+                res += slackApiConversationsListResponse.channels.map { it.toBusiness() }
+            } while (!slackApiConversationsListResponse?.responseMetadata?.nextCursor.isNullOrEmpty())
+            res.sortedBy { it.name }
         } catch (e: Exception) {
             Log.w(e, "Could not make network call")
             null
@@ -111,3 +112,9 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         private const val FILE_NAME = "via Fotomator"
     }
 }
+
+private fun SlackApiChannel.toBusiness() = SlackChannel(
+    name = name,
+    topic = topic?.value?.ifEmpty { null },
+    purpose = purpose?.value?.ifEmpty { null },
+)

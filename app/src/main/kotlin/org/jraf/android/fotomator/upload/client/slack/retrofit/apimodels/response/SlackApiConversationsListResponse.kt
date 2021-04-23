@@ -22,8 +22,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.app.slack.channel
+package org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response
 
-data class SlackChannelUiModel(val name: String) {
-    val formattedName = "# $name"
-}
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class SlackApiConversationsListResponse(
+    val ok: Boolean,
+
+    val channels: List<SlackApiChannel>,
+
+    @Json(name = "response_metadata")
+    val responseMetadata: SlackApiResponseMetadata?,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiChannel(
+    val name: String,
+    val topic: SlackApiChannelTopicOrPurpose?,
+    val purpose: SlackApiChannelTopicOrPurpose?,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiChannelTopicOrPurpose(
+    val value: String?,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiResponseMetadata(
+    @Json(name = "next_cursor")
+    val nextCursor: String?,
+)

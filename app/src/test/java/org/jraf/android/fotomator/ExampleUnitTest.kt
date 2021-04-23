@@ -7,7 +7,7 @@
  *                              /___/
  * repository.
  *
- * Copyright (C) 2020-present Benoit 'BoD' Lubek (BoD@JRAF.org)
+ * Copyright (C) 2021-present Benoit 'BoD' Lubek (BoD@JRAF.org)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,28 +22,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client.retrofit.apimodels.response
+package org.jraf.android.fotomator
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
-@JsonClass(generateAdapter = true)
-data class ConversationsListResponse(
-    val ok: Boolean,
-
-    val channels: List<Channel>,
-
-    @Json(name = "response_metadata")
-    val responseMetadata: ResponseMetadata?,
-)
-
-@JsonClass(generateAdapter = true)
-data class Channel(
-    val name: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class ResponseMetadata(
-    @Json(name = "next_cursor")
-    val nextCursor: String?,
-)
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}

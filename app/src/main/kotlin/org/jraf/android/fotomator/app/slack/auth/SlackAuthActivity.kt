@@ -24,15 +24,17 @@
  */
 package org.jraf.android.fotomator.app.slack.auth
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import dagger.hilt.android.AndroidEntryPoint
-import org.jraf.android.fotomator.R
-import org.jraf.android.fotomator.databinding.SlackAuthActivityBinding
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 import org.jraf.android.util.string.StringUtil
@@ -40,14 +42,18 @@ import org.jraf.android.util.string.StringUtil
 @AndroidEntryPoint
 class SlackAuthActivity : AppCompatActivity() {
     private val viewModel: SlackAuthViewModel by viewModels()
-    private lateinit var binding: SlackAuthActivityBinding
     private var fromNewIntent: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.slack_auth_activity)
-        binding.lifecycleOwner = this
-        binding.viewModel = viewModel
+
+        setContent {
+            val isLoading by viewModel.isLoading.observeAsState(false)
+            SlackAuthLayout(
+                isLoading = isLoading,
+                onStartAuthenticationClick = viewModel::startAuthentication,
+            )
+        }
 
         viewModel.toast.observeNonNull(this) { resId ->
             Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
@@ -81,5 +87,12 @@ class SlackAuthActivity : AppCompatActivity() {
         }
         fromNewIntent = false
         Log.d()
+    }
+
+    companion object {
+        val CONTRACT = object : ActivityResultContract<Unit, Boolean>() {
+            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackAuthActivity::class.java)
+            override fun parseResult(resultCode: Int, intent: Intent?) = resultCode == RESULT_OK
+        }
     }
 }

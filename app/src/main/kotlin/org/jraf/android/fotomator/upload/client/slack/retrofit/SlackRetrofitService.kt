@@ -22,12 +22,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client.retrofit
+package org.jraf.android.fotomator.upload.client.slack.retrofit
 
 import okhttp3.MultipartBody
-import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.ConversationsListResponse
-import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.FileUploadResponse
-import org.jraf.android.fotomator.upload.client.retrofit.apimodels.response.OauthAccessResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiFileUploadResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiOauthAccessResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -46,7 +46,7 @@ interface SlackRetrofitService {
 
         @Query("client_secret")
         clientSecret: String,
-    ): OauthAccessResponse
+    ): SlackApiOauthAccessResponse
 
     @Multipart
     @POST("files.upload")
@@ -59,7 +59,7 @@ interface SlackRetrofitService {
 
         @Part
         file: MultipartBody.Part,
-    ): FileUploadResponse
+    ): SlackApiFileUploadResponse
 
     @GET("conversations.list")
     suspend fun conversationsList(
@@ -74,6 +74,6 @@ interface SlackRetrofitService {
 
         @Query("types")
         types: String = "public_channel,private_channel"
-    ): ConversationsListResponse
+    ): SlackApiConversationsListResponse
 
 }

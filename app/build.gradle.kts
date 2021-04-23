@@ -66,9 +66,10 @@ android {
 
     buildFeatures {
         dataBinding = true
+        compose = true
     }
 
-    lintOptions {
+    lint {
         isAbortOnError = true
         textReport = true
         isIgnoreWarnings = true
@@ -81,6 +82,10 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = Versions.ANDROIDX_COMPOSE
     }
 
     sourceSets {
@@ -132,7 +137,7 @@ dependencies {
     implementation("androidx.room", "room-ktx", Versions.ANDROIDX_ROOM)
     implementation("androidx.constraintlayout", "constraintlayout", Versions.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation("androidx.work", "work-runtime-ktx", Versions.ANDROIDX_WORK_MANAGER)
-    implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT)
+    implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT_LIFECYCLE_VIEWMODEL)
     kapt("androidx.hilt", "hilt-compiler", Versions.ANDROIDX_HILT)
 
     // Material
@@ -155,6 +160,17 @@ dependencies {
 
     // Play services
     implementation("com.google.android.gms", "play-services-oss-licenses", Versions.PLAY_SERVICES_OSS_LICENSE)
+
+    // Compose
+    implementation("androidx.compose.ui", "ui", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.ui", "ui-tooling", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.foundation", "foundation", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.material", "material", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.material", "material-icons-core", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.material", "material-icons-extended", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.activity", "activity-compose", Versions.ANDROIDX_ACTIVITY)
+    implementation("androidx.lifecycle", "lifecycle-viewmodel-compose", Versions.ANDROIDX_LIFECYCLE_VIEWMODEL_COMPOSE)
+    implementation("androidx.compose.runtime", "runtime-livedata", Versions.ANDROIDX_COMPOSE)
 
     // Testing
     androidTestImplementation("androidx.test.espresso", "espresso-core", Versions.ESPRESSO) {

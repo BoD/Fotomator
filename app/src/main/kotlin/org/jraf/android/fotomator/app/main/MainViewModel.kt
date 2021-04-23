@@ -25,6 +25,7 @@
 package org.jraf.android.fotomator.app.main
 
 import android.content.Context
+import androidx.core.os.postDelayed
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
@@ -33,6 +34,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.util.fireAndForget
+import org.jraf.android.util.handler.HandlerUtil
 import org.jraf.android.util.log.Log
 import java.text.DateFormat
 import java.util.Calendar
@@ -51,7 +53,7 @@ class MainViewModel @Inject constructor(
     val slackChannelLiveData: MutableLiveData<String?> = prefs.slackChannelLiveData
 
     val pickSlackChannel = MutableLiveData<Unit?>()
-    val showAutomaticallyStopServiceDialog = MutableLiveData<Unit?>()
+    val isAutomaticallyStopServiceDialogVisible = MutableLiveData(false)
     val showAutomaticallyStopServiceDatePicker = MutableLiveData<Unit?>()
     val showAutomaticallyStopServiceTimePicker = MutableLiveData<Unit?>()
     val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
@@ -67,16 +69,29 @@ class MainViewModel @Inject constructor(
 
     private var automaticallyStopServiceDatePicked: Long? = null
 
-    fun onServiceEnabledSwitchClick(isChecked: Boolean) {
-        Log.d("isChecked=$isChecked")
-
-        if (isChecked) {
-            showAutomaticallyStopServiceDialog.fireAndForget()
+    fun onServiceEnabledSwitchClick() {
+        isServiceEnabledLiveData.value = !isServiceEnabledLiveData.value!!
+        val serviceEnabled = isServiceEnabledLiveData.value!!
+        Log.d("serviceEnabled=$serviceEnabled")
+        if (serviceEnabled) {
+            // Wait a few milliseconds for the switch animation to have time to run
+            HandlerUtil.getMainHandler().postDelayed(300L) {
+                isAutomaticallyStopServiceDialogVisible.value = true
+            }
         }
     }
 
     fun onChannelClick() {
         pickSlackChannel.fireAndForget()
+    }
+
+    fun onAutomaticallyStopServiceDialogSetDateTimeClick() {
+        isAutomaticallyStopServiceDialogVisible.value = false
+        showAutomaticallyStopServiceDatePicker.fireAndForget()
+    }
+
+    fun onAutomaticallyStopServiceDialogManuallyClick() {
+        isAutomaticallyStopServiceDialogVisible.value = false
     }
 
     fun onAutomaticallyStopServiceDatePicked(timestamp: Long?) {

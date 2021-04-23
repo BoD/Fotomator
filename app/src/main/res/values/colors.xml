@@ -4,4 +4,5 @@
     <color name="colorPrimaryAlpha">#20FF9A5A</color>
     <color name="colorPrimaryDark">#EF9155</color>
     <color name="colorAccent">@color/colorPrimary</color>
+    <color name="statusBarColor">@color/colorPrimaryDark</color>
 </resources>

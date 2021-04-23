@@ -25,7 +25,6 @@
 package org.jraf.android.fotomator.app.main
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -33,15 +32,15 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.format.DateFormat
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
-import androidx.databinding.DataBindingUtil
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
@@ -51,7 +50,6 @@ import org.jraf.android.fotomator.BuildConfig
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
-import org.jraf.android.fotomator.databinding.MainActivityBinding
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.about.AboutActivityIntentBuilder
@@ -62,30 +60,32 @@ import org.jraf.android.util.log.Log
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), AlertDialogListener {
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var binding: MainActivityBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.main_activity)
-        binding.lifecycleOwner = this
-        binding.viewModel = viewModel
 
-        title = null
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setContent {
+            val isServiceEnabled by viewModel.isServiceEnabledLiveData.observeAsState(false)
+            val slackChannel by viewModel.slackChannelLiveData.observeAsState()
+            val automaticallyStopServiceDateTimeFormatted by viewModel.automaticallyStopServiceDateTimeFormatted.observeAsState("")
+            val isAutomaticallyStopServiceDialogVisible by viewModel.isAutomaticallyStopServiceDialogVisible.observeAsState(false)
+            MainLayout(
+                isServiceEnabled = isServiceEnabled,
+                slackChannel = slackChannel,
+                automaticallyStopServiceDateTimeFormatted = automaticallyStopServiceDateTimeFormatted,
+                onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
+                onAboutClick = ::onAboutClick,
+                onChannelClick = viewModel::onChannelClick,
+                onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick,
+                isAutomaticallyStopServiceDialogVisible = isAutomaticallyStopServiceDialogVisible,
+                onAutomaticallyStopServiceDialogSetDateTimeClick = viewModel::onAutomaticallyStopServiceDialogSetDateTimeClick,
+                onAutomaticallyStopServiceDialogManuallyClick = viewModel::onAutomaticallyStopServiceDialogManuallyClick,
+            )
+        }
 
         observeUi()
 
         checkPermissions()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        onAboutClicked()
-        return super.onOptionsItemSelected(item)
     }
 
     private fun observeUi() {
@@ -100,10 +100,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         viewModel.pickSlackChannel.observeNonNull(this) {
             setupSlackChannel()
-        }
-
-        viewModel.showAutomaticallyStopServiceDialog.observeNonNull(this) {
-            showAutomaticallyStopServiceDialog()
         }
 
         viewModel.showAutomaticallyStopServiceDatePicker.observeNonNull(this) {
@@ -128,9 +124,9 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         }
     }
 
-    private val setupSlackAuthLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+    private val setupSlackAuthLauncher = registerForActivityResult(SlackAuthActivity.CONTRACT) { result ->
         Log.d("result=$result")
-        if (result.resultCode != Activity.RESULT_OK) {
+        if (!result) {
             if (viewModel.slackAuthToken == null) {
                 Log.d("User refuses to setup Slack auth: finish")
                 finish()
@@ -140,15 +136,14 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         }
     }
 
-    private val pickSlackChannelLauncher = registerForActivityResult(StartActivityForResult()) { result ->
-        Log.d("result=$result")
-        if (result.resultCode != Activity.RESULT_OK) {
+    private val pickSlackChannelLauncher = registerForActivityResult(SlackPickChannelActivity.CONTRACT) { pickedChannel ->
+        Log.d("pickedChannel=$pickedChannel")
+        if (pickedChannel == null) {
             if (viewModel.slackChannel == null) {
-                Log.d("User refuses to setup Slack channel: finish")
+                Log.d("User didn't pick a Slack channel: finish")
                 finish()
             }
         } else {
-            val pickedChannel = SlackPickChannelActivity.getPickedChannelName(result.data!!)
             viewModel.slackChannel = pickedChannel
         }
     }
@@ -201,11 +196,11 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private fun setupSlackAuth() {
-        setupSlackAuthLauncher.launch(Intent(this, SlackAuthActivity::class.java))
+        setupSlackAuthLauncher.launch()
     }
 
     private fun setupSlackChannel() {
-        pickSlackChannelLauncher.launch(Intent(this, SlackPickChannelActivity::class.java))
+        pickSlackChannelLauncher.launch()
     }
 
 
@@ -238,7 +233,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
                 startActivity(intent)
                 finish()
             }
-            DIALOG_AUTOMATICALLY_STOP_SERVICE -> viewModel.showAutomaticallyStopServiceDatePicker.value = Unit
         }
     }
 
@@ -250,7 +244,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
     override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
 
-    private fun onAboutClicked() {
+    private fun onAboutClick() {
         startActivity(
             AboutActivityIntentBuilder()
                 .setAppName(getString(R.string.app_name))
@@ -274,15 +268,18 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     // region Automatically stop service date/time.
     //--------------------------------------------------------------------------
 
-    private fun showAutomaticallyStopServiceDialog() {
-        Log.d()
-        AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
-            .title(R.string.main_automaticallyStopServiceDialog_title)
-            .message(R.string.main_automaticallyStopServiceDialog_message)
-            .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
-            .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
-            .show(this)
-    }
+//    private fun showAutomaticallyStopServiceDialog() {
+//        Log.d()
+//        // Wait a few milliseconds for the switch animation to have time to run
+//        HandlerUtil.getMainHandler().postDelayed(300L) {
+//            AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
+//                .title(R.string.main_automaticallyStopServiceDialog_title)
+//                .message(R.string.main_automaticallyStopServiceDialog_message)
+//                .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
+//                .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
+//                .show(this)
+//        }
+//    }
 
     private fun showAutomaticallyStopServiceDatePicker() {
         if (supportFragmentManager.findFragmentByTag(DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE) != null) return
@@ -290,7 +287,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             .setTitleText(R.string.main_automaticallyStopServiceDialog_title)
             .setCalendarConstraints(CalendarConstraints.Builder().setStart(System.currentTimeMillis()).build())
             .build()
-        datePicker.addOnNegativeButtonClickListener() {
+        datePicker.addOnNegativeButtonClickListener {
             Log.d()
             viewModel.onAutomaticallyStopServiceDatePicked(null)
         }
@@ -333,7 +330,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         private const val DIALOG_NO_PERMISSION = 0
         private const val DIALOG_SHOW_RATIONALE = 1
-        private const val DIALOG_AUTOMATICALLY_STOP_SERVICE = 2
         private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE = "DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE"
         private const val DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME = "DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME"
     }

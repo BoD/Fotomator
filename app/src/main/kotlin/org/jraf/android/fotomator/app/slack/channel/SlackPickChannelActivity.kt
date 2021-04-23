@@ -24,39 +24,37 @@
  */
 package org.jraf.android.fotomator.app.slack.channel
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import dagger.hilt.android.AndroidEntryPoint
-import org.jraf.android.fotomator.R
-import org.jraf.android.fotomator.databinding.SlackPickChannelActivityBinding
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 
 @AndroidEntryPoint
 class SlackPickChannelActivity : AppCompatActivity() {
     private val viewModel: SlackPickChannelViewModel by viewModels()
-    private lateinit var binding: SlackPickChannelActivityBinding
-
-    private val adapter = SlackPickChannelAdapter { channelName ->
-        Log.d("channelName=$channelName")
-        setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channelName))
-        finish()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.slack_pick_channel_activity)
-        binding.lifecycleOwner = this
-        binding.viewModel = viewModel
 
-        binding.rclChannels.adapter = adapter
-
-        viewModel.channelList.observe(this) { channelList ->
-            adapter.submitList(channelList.map { SlackChannelUiModel(it) })
+        setContent {
+            val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)
+            SlackPickChannelLayout(
+                state = layoutState,
+                onChannelClick = { channel ->
+                    Log.d("channel=$channel")
+                    setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channel.name))
+                    finish()
+                }
+            )
         }
 
         viewModel.toast.observeNonNull(this) { resId ->
@@ -72,6 +70,9 @@ class SlackPickChannelActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_CHANNEL_NAME = "EXTRA_CHANNEL_NAME"
 
-        fun getPickedChannelName(intent: Intent): String? = intent.getStringExtra(EXTRA_CHANNEL_NAME)
+        val CONTRACT = object : ActivityResultContract<Unit, String?>() {
+            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackPickChannelActivity::class.java)
+            override fun parseResult(resultCode: Int, intent: Intent?) = intent?.getStringExtra(EXTRA_CHANNEL_NAME)
+        }
     }
 }

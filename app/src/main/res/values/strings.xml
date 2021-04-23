@@ -17,6 +17,8 @@
 
     <string name="main_permissionShowRationaleDialog_message">The permissions are needed so Fotomator can access and share the photos.</string>
     <string name="main_permissionShowRationaleDialog_positive">OK</string>
+
+    <string name="main_menu_more">More options</string>
     <string name="main_menu_about">About…</string>
 
     <string name="main_automaticallyStopServiceDialog_title">When to stop?</string>

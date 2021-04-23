@@ -36,7 +36,7 @@ import org.jraf.android.fotomator.data.MediaUploadState
 import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
 import org.jraf.android.fotomator.notification.createPhotoUploadingNotification
 import org.jraf.android.fotomator.prefs.AppPrefs
-import org.jraf.android.fotomator.upload.client.SlackClient
+import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.util.log.Log
 import java.io.FileInputStream
 import java.io.FileNotFoundException
