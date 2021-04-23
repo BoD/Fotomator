@@ -28,7 +28,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.format.DateFormat
@@ -208,11 +207,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         if (!PhotoMonitoringService.isStarted) {
             Toast.makeText(this, R.string.main_service_toast_enabled, Toast.LENGTH_LONG).show()
             val serviceIntent = Intent(this, PhotoMonitoringService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
+            ContextCompat.startForegroundService(this, serviceIntent)
         }
     }
 
@@ -267,19 +262,6 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     //--------------------------------------------------------------------------
     // region Automatically stop service date/time.
     //--------------------------------------------------------------------------
-
-//    private fun showAutomaticallyStopServiceDialog() {
-//        Log.d()
-//        // Wait a few milliseconds for the switch animation to have time to run
-//        HandlerUtil.getMainHandler().postDelayed(300L) {
-//            AlertDialogFragment.newInstance(DIALOG_AUTOMATICALLY_STOP_SERVICE)
-//                .title(R.string.main_automaticallyStopServiceDialog_title)
-//                .message(R.string.main_automaticallyStopServiceDialog_message)
-//                .positiveButton(R.string.main_automaticallyStopServiceDialog_positive)
-//                .negativeButton(R.string.main_automaticallyStopServiceDialog_negative)
-//                .show(this)
-//        }
-//    }
 
     private fun showAutomaticallyStopServiceDatePicker() {
         if (supportFragmentManager.findFragmentByTag(DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE) != null) return
