@@ -26,7 +26,6 @@ package org.jraf.android.fotomator.app
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
-import org.jraf.android.fotomator.BuildConfig
 import org.jraf.android.util.log.Log
 
 @HiltAndroidApp
@@ -35,7 +34,7 @@ class Application : Application() {
         super.onCreate()
 
         // Log
-        Log.init(this, LOG_TAG, BuildConfig.DEBUG)
+        Log.init(this, LOG_TAG, true)
     }
 
     companion object {
