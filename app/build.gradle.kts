@@ -54,12 +54,17 @@ android {
             buildConfigField("String", "GIT_SHA1", "\"${getGitSha1()}\"")
             buildConfigField("String", "BUILD_DATE", "\"${buildDate}\"")
 
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            isShrinkResources = true
+            // Disable proguard for now - trying to investigate "killed service" issues and obfuscation doesn't help
+//            isMinifyEnabled = true
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//            isShrinkResources = true
+
+            isMinifyEnabled = false
+            isShrinkResources = false
+
             signingConfig = signingConfigs.getByName("release")
         }
     }

@@ -101,7 +101,7 @@ fun createPhotoScheduledNotification(
     context: Context,
     mediaUri: Uri,
     scheduledTaskDelayMs: Long
-): Notification {
+): Notification? {
     val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
 
     val title = context.getString(R.string.notification_scheduled_title)
@@ -113,7 +113,7 @@ fun createPhotoScheduledNotification(
     )
     val text = context.getString(R.string.notification_scheduled_text, delayMinutesStr)
 
-    val photoBitmap = loadBitmapFromUri(context, mediaUri)
+    val photoBitmap = loadBitmapFromUri(context, mediaUri) ?: return null
 
     val bigPictureStyle = createBigPictureStyle(photoBitmap, title, text)
 
@@ -160,13 +160,13 @@ fun createPhotoScheduledNotification(
 fun createPhotoUploadingNotification(
     context: Context,
     mediaUri: Uri,
-): Notification {
+): Notification? {
     val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
 
     val title = context.getString(R.string.notification_uploading_title)
     val text = context.getString(R.string.notification_uploading_text)
 
-    val photoBitmap = loadBitmapFromUri(context, mediaUri)
+    val photoBitmap = loadBitmapFromUri(context, mediaUri) ?: return null
 
     val bigPictureStyle = createBigPictureStyle(photoBitmap, title, text)
 

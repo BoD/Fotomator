@@ -57,33 +57,29 @@ class UploadScheduler @Inject constructor(
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private val scheduledTasks = mutableMapOf<Uri, ScheduledFuture<*>>()
 
-    /**
-     * @return `true` if the specified uri was already scheduled, `false` otherwise
-     */
-    fun addToSchedule(mediaUri: Uri): Boolean {
+    fun addToSchedule(mediaUri: Uri) {
         val delayMs = getScheduledTaskDelayMs()
         Log.d("Scheduling upload mediaUri=$mediaUri in delayMs=$delayMs")
 
-        showScheduledNotification(mediaUri, delayMs)
+        val notificationSuccess = showScheduledNotification(mediaUri, delayMs)
+        if (!notificationSuccess) {
+            Log.d("Could not show notification: don't schedule")
+            return
+        }
 
         val scheduledFuture = scheduler.schedule({
             runBlocking {
                 uploadContent(mediaUri)
             }
         }, delayMs, TimeUnit.MILLISECONDS)
-        val previousValue = scheduledTasks.put(mediaUri, scheduledFuture)
-        return previousValue != null
+        scheduledTasks[mediaUri] = scheduledFuture
     }
 
-    /**
-     * @return `true` if the specified uri was scheduled, `false` otherwise (meaning this call removed nothing)
-     */
-    fun removeFromSchedule(mediaUri: Uri): Boolean {
+    fun removeFromSchedule(mediaUri: Uri) {
         Log.d("mediaUri=$mediaUri")
         val previousValue = scheduledTasks.remove(mediaUri)
         previousValue?.cancel(true)
         hideScheduledNotification(mediaUri)
-        return previousValue != null
     }
 
     suspend fun removeAllFromSchedule() {
@@ -111,13 +107,18 @@ class UploadScheduler @Inject constructor(
     private suspend fun uploadContent(mediaUri: Uri) {
         Log.d("mediaUri=$mediaUri")
 
+        val media = database.mediaDao().getByUrl(mediaUri.toString())!!
+
         // Update notification
-        showUploadingNotification(mediaUri)
+        val notificationSuccess = showUploadingNotification(mediaUri)
+        if (!notificationSuccess) {
+            // Could not show the notification: probably can't read from the media. Give up.
+            database.mediaDao().insert(media.copy(uploadState = MediaUploadState.ERROR))
+            return
+        }
 
         // Update the db
-        val media = database.mediaDao().getByUrl(mediaUri.toString())!!
-            .copy(uploadState = MediaUploadState.UPLOADING)
-        database.mediaDao().insert(media)
+        database.mediaDao().insert(media.copy(uploadState = MediaUploadState.UPLOADING))
 
         val parcelFileDescriptor = try {
             @Suppress("BlockingMethodInNonBlockingContext")
@@ -177,16 +178,18 @@ class UploadScheduler @Inject constructor(
         }
     }
 
-    private fun showScheduledNotification(mediaUri: Uri, delayMs: Long) {
+    private fun showScheduledNotification(mediaUri: Uri, delayMs: Long): Boolean {
         Log.d("mediaUri=$mediaUri")
-        val notification = createPhotoScheduledNotification(context, mediaUri, delayMs)
+        val notification = createPhotoScheduledNotification(context, mediaUri, delayMs) ?: return false
         NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
+        return true
     }
 
-    private fun showUploadingNotification(mediaUri: Uri) {
+    private fun showUploadingNotification(mediaUri: Uri): Boolean {
         Log.d("mediaUri=$mediaUri")
-        val notification = createPhotoUploadingNotification(context, mediaUri)
+        val notification = createPhotoUploadingNotification(context, mediaUri) ?: return false
         NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
+        return true
     }
 
     private fun hideScheduledNotification(mediaUri: Uri) {
