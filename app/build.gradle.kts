@@ -98,35 +98,6 @@ android {
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.forEach { variant ->
-        // Create new copy tasks, for release builds
-        if (variant.buildType.name == "release") {
-            variant.outputs.forEach { output ->
-                val outputApkFile = file("build/outputs/apk/${variant.flavorName}/release/${output.outputFile.name}")
-                val destinationApkFileName = "${rootProject.name}-${project.name}-${android.defaultConfig.versionCode}-${variant.flavorName}-signed.apk"
-
-                // Copy the apk to the 'etc' folder
-                val copyApkToEtc = tasks.register<Copy>("copy${variant.name.capitalize()}ApkToEtc") {
-                    from(outputApkFile)
-                    into("../etc/apk")
-                    rename(output.outputFile.name, destinationApkFileName)
-                }
-
-                // Copy the apk to the deploy folder
-                val copyApkToDeploy = tasks.register<Copy>("copy${variant.name.capitalize()}ApkToDeploy") {
-                    from(outputApkFile)
-                    into("${AppConfig.buildProperties["deployFolder"]}/${rootProject.name}/${android.defaultConfig.versionCode}")
-                    rename(output.outputFile.name, destinationApkFileName)
-                }
-
-                // Make the copy tasks run after the assemble tasks of the variant
-                variant.assembleProvider!!.get().finalizedBy(copyApkToEtc, copyApkToDeploy)
-            }
-        }
-    }
-}
-
 dependencies {
     // Kotlin
     implementation(kotlin("stdlib", Versions.KOTLIN))
