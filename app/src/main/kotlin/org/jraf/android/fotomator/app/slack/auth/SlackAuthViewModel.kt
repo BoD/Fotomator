@@ -36,6 +36,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
+import org.jraf.android.fotomator.upload.client.slack.OAuthAccess
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.log.Log
@@ -45,7 +46,7 @@ import javax.inject.Inject
 class SlackAuthViewModel @Inject constructor(
     private val application: Application,
     private val prefs: AppPrefs,
-    private val slackClient: SlackClient
+    private val slackClient: SlackClient,
 ) : ViewModel() {
 
     val isLoading = MutableLiveData(false)
@@ -83,15 +84,18 @@ class SlackAuthViewModel @Inject constructor(
                 Log.d("Calling oauth access API")
                 setLoading(true)
                 GlobalScope.launch(Dispatchers.Main) {
-                    val authToken = slackClient.oauthAccess(code)
-                    if (authToken == null) {
-                        Log.w("No auth token in response")
-                        showToast(R.string.slack_auth_failed)
-                        setLoading(false)
-                    } else {
-                        prefs.slackAuthToken = authToken
-                        showToast(R.string.slack_auth_success)
-                        finishWithSuccess.value = Unit
+                    when (val oAuthAccess = slackClient.oauthAccess(code)) {
+                        OAuthAccess.Fail -> {
+                            Log.w("No auth token in response")
+                            showToast(R.string.slack_auth_failed)
+                            setLoading(false)
+                        }
+                        is OAuthAccess.Success -> {
+                            prefs.slackAuthToken = oAuthAccess.accessToken
+                            prefs.slackTeamName.value = oAuthAccess.teamName
+                            showToast(R.string.slack_auth_success)
+                            finishWithSuccess.value = Unit
+                        }
                     }
                 }
             }

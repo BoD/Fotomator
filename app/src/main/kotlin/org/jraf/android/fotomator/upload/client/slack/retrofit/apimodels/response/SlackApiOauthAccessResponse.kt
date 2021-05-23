@@ -33,10 +33,19 @@ data class SlackApiOauthAccessResponse(
 
     @Json(name = "authed_user")
     val authedUser: SlackApiAuthedUser?,
+
+    @Json(name = "team")
+    val team: SlackApiTeam?,
 )
 
 @JsonClass(generateAdapter = true)
 data class SlackApiAuthedUser(
     @Json(name = "access_token")
-    val accessToken: String?,
+    val accessToken: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiTeam(
+    @Json(name = "name")
+    val name: String,
 )

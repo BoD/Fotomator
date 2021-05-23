@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import dagger.hilt.android.AndroidEntryPoint
+import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 
@@ -44,6 +45,8 @@ class SlackPickChannelActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        supportActionBar!!.subtitle = getString(R.string.slack_pick_channel_subtitle)
 
         setContent {
             val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)

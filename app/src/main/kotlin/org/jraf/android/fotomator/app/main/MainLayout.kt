@@ -68,8 +68,10 @@ import org.jraf.android.fotomator.theme.FotomatorTheme
 fun MainLayout(
     isServiceEnabled: Boolean,
     slackChannel: String?,
+    slackTeamName: String?,
     automaticallyStopServiceDateTimeFormatted: String,
     onServiceEnabledClick: () -> Unit,
+    onDisconnectSlackClick: () -> Unit,
     onAboutClick: () -> Unit,
     onChannelClick: () -> Unit,
     onAutomaticallyStopServiceDateTimeClick: () -> Unit,
@@ -99,6 +101,12 @@ fun MainLayout(
                         ) {
                             DropdownMenuItem(onClick = {
                                 menuExpanded = false
+                                onDisconnectSlackClick()
+                            }) {
+                                Text(stringResource(R.string.main_menu_disconnectSlack))
+                            }
+                            DropdownMenuItem(onClick = {
+                                menuExpanded = false
                                 onAboutClick()
                             }) {
                                 Text(stringResource(R.string.main_menu_about))
@@ -111,6 +119,7 @@ fun MainLayout(
                 MainContent(
                     isServiceEnabled,
                     slackChannel,
+                    slackTeamName,
                     automaticallyStopServiceDateTimeFormatted,
                     onServiceEnabledClick,
                     onChannelClick,
@@ -129,6 +138,7 @@ fun MainLayout(
 private fun MainContent(
     isServiceEnabled: Boolean,
     slackChannel: String?,
+    slackTeamName: String?,
     automaticallyStopServiceDateTimeFormatted: String,
     onServiceEnabledClick: () -> Unit,
     onChannelClick: () -> Unit,
@@ -161,7 +171,8 @@ private fun MainContent(
             if (slackChannel != null) {
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onChannelClick, enabled = isServiceEnabled) {
-                    Text(stringResource(R.string.main_channel, slackChannel), letterSpacing = 0.sp)
+                    val teamName = if (slackTeamName == null) "" else "$slackTeamName "
+                    Text(stringResource(R.string.main_channel, "$teamName#$slackChannel"), letterSpacing = 0.sp)
                 }
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onAutomaticallyStopServiceDateTimeClick, enabled = isServiceEnabled) {
@@ -175,7 +186,7 @@ private fun MainContent(
 @Composable
 private fun AutomaticallyStopServiceDialog(
     onAutomaticallyStopServiceDialogManuallyClick: () -> Unit,
-    onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit
+    onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit,
 ) = AlertDialog(
     onDismissRequest = onAutomaticallyStopServiceDialogManuallyClick,
     title = {
@@ -202,8 +213,10 @@ private fun MainLayoutPreview() {
     MainLayout(
         isServiceEnabled = true,
         slackChannel = "test",
+        slackTeamName = "BoD, inc.",
         automaticallyStopServiceDateTimeFormatted = "Stop on Oct. 11 at 1:30 PM",
         onServiceEnabledClick = {},
+        onDisconnectSlackClick = {},
         onAboutClick = {},
         onChannelClick = {},
         onAutomaticallyStopServiceDateTimeClick = {},

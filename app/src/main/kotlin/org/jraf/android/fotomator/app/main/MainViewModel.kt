@@ -27,6 +27,7 @@ package org.jraf.android.fotomator.app.main
 import android.content.Context
 import androidx.core.os.postDelayed
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,19 +45,21 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     @ApplicationContext context: Context,
-    private val prefs: AppPrefs
+    private val prefs: AppPrefs,
 ) : AndroidViewModel(context.applicationContext as android.app.Application) {
     val isServiceEnabledLiveData: MutableLiveData<Boolean> = prefs.isServiceEnabledLiveData
 
     val slackAuthToken: String? by prefs::slackAuthToken
     var slackChannel: String? by prefs::slackChannel
-    val slackChannelLiveData: MutableLiveData<String?> = prefs.slackChannelLiveData
+    val slackChannelLiveData: LiveData<String?> = prefs.slackChannelLiveData
+    val slackTeamName: LiveData<String?> = prefs.slackTeamName
 
     val pickSlackChannel = MutableLiveData<Unit?>()
     val isAutomaticallyStopServiceDialogVisible = MutableLiveData(false)
     val showAutomaticallyStopServiceDatePicker = MutableLiveData<Unit?>()
     val showAutomaticallyStopServiceTimePicker = MutableLiveData<Unit?>()
     val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
+    val setupSlackAuth = MutableLiveData<Unit?>()
 
     val automaticallyStopServiceDateTimeFormatted = prefs.automaticallyStopServiceDateTime.map { automaticallyStopServiceDateTime ->
         if (automaticallyStopServiceDateTime == null) {
@@ -126,5 +129,13 @@ class MainViewModel @Inject constructor(
 
     fun onAutomaticallyStopServiceDateTimeClick() {
         showAutomaticallyStopServiceDatePicker.fireAndForget()
+    }
+
+    fun onDisconnectSlackClick() {
+        prefs.isServiceEnabled = false
+        prefs.slackChannel = null
+        prefs.slackTeamName.value = null
+        prefs.slackAuthToken = null
+        setupSlackAuth.fireAndForget()
     }
 }

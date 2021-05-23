@@ -36,17 +36,20 @@ import javax.inject.Singleton
 class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
     private val prefs = Prefs(context)
 
-    var isServiceEnabled: Boolean by prefs.Boolean(false, Key(KEY_IS_SERVICE_ENABLED))
-    val isServiceEnabledLiveData: MutableLiveData<Boolean> by prefs.BooleanLiveData(false, Key(KEY_IS_SERVICE_ENABLED))
-    val automaticallyStopServiceDateTime: MutableLiveData<Long?> by prefs.LongLiveData(Key(AUTOMATICALLY_STOP_SERVICE_DATE_TIME))
+    var isServiceEnabled: Boolean by prefs.Boolean(false, KEY_IS_SERVICE_ENABLED)
+    val isServiceEnabledLiveData: MutableLiveData<Boolean> by prefs.BooleanLiveData(false, KEY_IS_SERVICE_ENABLED)
+    val automaticallyStopServiceDateTime: MutableLiveData<Long?> by prefs.LongLiveData(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
 
     var slackAuthToken: String? by prefs.String()
 
-    var slackChannel: String? by prefs.String(Key("slackChannel"))
-    val slackChannelLiveData: MutableLiveData<String?> by prefs.StringLiveData(Key("slackChannel"))
+    val slackTeamName: MutableLiveData<String?> by prefs.StringLiveData()
+
+    var slackChannel: String? by prefs.String(KEY_SLACK_CHANNEL)
+    val slackChannelLiveData: MutableLiveData<String?> by prefs.StringLiveData(KEY_SLACK_CHANNEL)
 
     companion object {
-        private const val KEY_IS_SERVICE_ENABLED = "isServiceEnabled"
-        private const val AUTOMATICALLY_STOP_SERVICE_DATE_TIME = "automaticallyStopServiceDateTime"
+        private val KEY_IS_SERVICE_ENABLED = Key("isServiceEnabled")
+        private val KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME = Key("automaticallyStopServiceDateTime")
+        private val KEY_SLACK_CHANNEL = Key("slackChannel")
     }
 }

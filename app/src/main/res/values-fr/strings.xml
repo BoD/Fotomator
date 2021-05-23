@@ -1,0 +1,78 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Fotomator</string>
+
+    <!-- Main -->
+    <string name="main_service_switch_enabled">Fotomator est EN ROUTE</string>
+    <string name="main_service_switch_disabled">Fotomator est éteint</string>
+    <string name="main_channel">Partage sur %1$s</string>
+    <string name="main_automaticallyStopServiceDateTime_notSet">Date de fin non spécifiée</string>
+    <string name="main_automaticallyStopServiceDateTime_set">Date de fin: %1$s</string>
+
+    <string name="main_service_toast_enabled">Fotomator est EN ROUTE</string>
+    <string name="main_service_toast_disabled">Fotomator est éteint</string>
+
+    <string name="main_permissionNotGrantedDialog_message">Les permissions nécessaires n\'ont pas été données, et Fotomator ne peut pas fonctionner sans celles-ci.</string>
+    <string name="main_permissionNotGrantedDialog_positive">Paramètres système</string>
+    <string name="main_permissionNotGrantedDialog_negative">Quitter</string>
+
+    <string name="main_permissionShowRationaleDialog_message">Les permissions sont requises afin que Fotomator puisse accéder aux photos et les partager.</string>
+    <string name="main_permissionShowRationaleDialog_positive">OK</string>
+
+    <string name="main_menu_more">Plus d\'options</string>
+    <string name="main_menu_disconnectSlack">Déconnexion de Slack</string>
+    <string name="main_menu_about">À propos…</string>
+
+    <string name="main_automaticallyStopServiceDialog_title">Quand arrêter le partage ?</string>
+    <string name="main_automaticallyStopServiceDialog_message">Les nouvelles photos seront partagées à partir de maintenant.\nVous pouvez arrêter Fotomator manuellement, ou bien planifier une date et heure d\'arrêt automatique.</string>
+    <string name="main_automaticallyStopServiceDialog_positive">Planifier date/heure</string>
+    <string name="main_automaticallyStopServiceDialog_negative">Manuellement</string>
+    <string name="main_automaticallyStopServiceDialog_dateIsInThePast">La date/heure choisie est déjà passée ! Veuillez ressayer.</string>
+
+    <!-- Slack auth -->
+    <string name="slack_auth_title">Connexion à Slack</string>
+    <string name="slack_auth_failed">La connexion à Slack a échoué, veuillez ressayer</string>
+    <string name="slack_auth_button">Démarrer la connexion à Slack</string>
+    <string name="slack_auth_success">Connexion à Slack réussie</string>
+
+    <!-- Slack pick channel -->
+    <string name="slack_pick_channel_title">Choisissez un canal</string>
+    <string name="slack_pick_channel_subtitle">Les photos seront partagées sur le canal sélectionné</string>
+    <string name="slack_pick_channel_failed">Impossible de charger la liste des canaux, veuillez ressayer</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_main_name">Canal principal</string>
+    <string name="notification_channel_main_description">Canal principal</string>
+
+    <string name="notification_service_title">Fotomator est EN ROUTE</string>
+    <string name="notification_service_text_withoutEndDate">Les nouvelles photos sont partagées</string>
+    <string name="notification_service_text_withEndDate">Les nouvelles photos sont partagées jusqu\'au %1$s</string>
+    <string name="notification_service_action_stop">Arrêter Fotomator</string>
+
+    <string name="notification_scheduled_title">Nouvelle photo</string>
+    <string name="notification_scheduled_text">Cette photo sera partagée dans %1$s</string>
+    <plurals name="notification_scheduled_text_delay">
+        <item quantity="one">%1$s minute</item>
+        <item quantity="other">%1$s minutes</item>
+    </plurals>
+    <string name="notification_scheduled_action_optOut">Ne pas partager</string>
+    <string name="notification_scheduled_action_uploadImmediately">Partager immédiatement</string>
+
+    <string name="notification_uploading_title">Partage de la photo…</string>
+    <string name="notification_uploading_text">Cette photo est en cours de partage…</string>
+
+    <!-- About -->
+    <string name="about_title">À propos</string>
+    <string name="about_authorCopyright" translatable="false" tools:ignore="TypographyOther">Copyright (C) 2020–present Benoit \'BoD\' Lubek.</string>
+    <string name="about_License" translatable="false">Licensed under the terms of the GNU General Public License.</string>
+    <string name="about_email_uri" translatable="false">mailto:BoD@JRAF.org</string>
+    <string name="about_email_text">Contact the author</string>
+    <string name="about_web_uri" translatable="false">https://JRAF.org/android/</string>
+    <string name="about_web_text">Author\'s web page</string>
+    <string name="about_sources_uri" translatable="false">https://github.com/BoD/Fotomator/</string>
+    <string name="about_sources_text">Source code on Github</string>
+    <string name="about_shareText_subject">Checkout out this app!</string>
+    <string name="about_shareText_body">Auto-share photos to Slack as you take them. Great for parties and events!!\nCheck it out
+        here:\nhttps://play.google.com/store/apps/details?id=%s
+    </string>
+
+</resources>

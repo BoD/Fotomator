@@ -66,14 +66,17 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         setContent {
             val isServiceEnabled by viewModel.isServiceEnabledLiveData.observeAsState(false)
             val slackChannel by viewModel.slackChannelLiveData.observeAsState()
+            val slackTeamName by viewModel.slackTeamName.observeAsState()
             val automaticallyStopServiceDateTimeFormatted by viewModel.automaticallyStopServiceDateTimeFormatted.observeAsState("")
             val isAutomaticallyStopServiceDialogVisible by viewModel.isAutomaticallyStopServiceDialogVisible.observeAsState(false)
             MainLayout(
                 isServiceEnabled = isServiceEnabled,
                 slackChannel = slackChannel,
+                slackTeamName = slackTeamName,
                 automaticallyStopServiceDateTimeFormatted = automaticallyStopServiceDateTimeFormatted,
                 onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
                 onAboutClick = ::onAboutClick,
+                onDisconnectSlackClick = viewModel::onDisconnectSlackClick,
                 onChannelClick = viewModel::onChannelClick,
                 onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick,
                 isAutomaticallyStopServiceDialogVisible = isAutomaticallyStopServiceDialogVisible,
@@ -111,6 +114,10 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
         viewModel.automaticallyStopServiceDateIsInThePast.observeNonNull(this) {
             Toast.makeText(this, R.string.main_automaticallyStopServiceDialog_dateIsInThePast, Toast.LENGTH_LONG).show()
+        }
+
+        viewModel.setupSlackAuth.observeNonNull(this) {
+            setupSlackAuth()
         }
     }
 

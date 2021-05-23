@@ -43,18 +43,21 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
 
     private val service: SlackRetrofitService = createRetrofit().create(SlackRetrofitService::class.java)
 
-    suspend fun oauthAccess(code: String): String? {
+    suspend fun oauthAccess(code: String): OAuthAccess {
         try {
             val oauthAccessResponse = service.oauthAccess(
                 code = code,
                 clientId = SLACK_APP_CLIENT_ID,
                 clientSecret = SLACK_APP_CLIENT_SECRET
             )
-            if (!oauthAccessResponse.ok) return null
-            return oauthAccessResponse.authedUser?.accessToken
+            if (!oauthAccessResponse.ok) return OAuthAccess.Fail
+            return OAuthAccess.Success(
+                accessToken = oauthAccessResponse.authedUser!!.accessToken,
+                teamName = oauthAccessResponse.team!!.name
+            )
         } catch (e: Exception) {
             Log.w(e, "Could not make network call")
-            return null
+            return OAuthAccess.Fail
         }
     }
 
@@ -118,3 +121,8 @@ private fun SlackApiChannel.toBusiness() = SlackChannel(
     topic = topic?.value?.ifEmpty { null },
     purpose = purpose?.value?.ifEmpty { null },
 )
+
+sealed class OAuthAccess {
+    object Fail : OAuthAccess()
+    data class Success(val accessToken: String, val teamName: String) : OAuthAccess()
+}
