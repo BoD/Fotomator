@@ -163,7 +163,7 @@ class PhotoMonitoringService : Service() {
         var id: Long = -1L
         if (cursor.moveToNext()) {
             val bucketName = cursor.getString(1)
-            val relevant = bucketName.toLowerCase(Locale.US) in RELEVANT_BUCKET_NAMES
+            val relevant = bucketName.lowercase(Locale.US) in RELEVANT_BUCKET_NAMES
             Log.d("bucketName=$bucketName relevant=$relevant")
             id = if (!relevant) -1 else cursor.getLong(0)
         }
