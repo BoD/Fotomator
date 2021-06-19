@@ -130,6 +130,7 @@ dependencies {
     implementation("com.squareup.retrofit2", "converter-moshi", Versions.RETROFIT)
     implementation("com.squareup.moshi", "moshi", Versions.MOSHI)
     kapt("com.squareup.moshi", "moshi-kotlin-codegen", Versions.MOSHI)
+    implementation("com.squareup.okhttp3", "logging-interceptor", Versions.OKHTTP)
 
     // Hilt
     implementation("com.google.dagger", "hilt-android", Versions.HILT)

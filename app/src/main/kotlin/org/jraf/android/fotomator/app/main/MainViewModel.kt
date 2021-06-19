@@ -25,6 +25,7 @@
 package org.jraf.android.fotomator.app.main
 
 import android.content.Context
+import android.content.Intent
 import androidx.core.os.postDelayed
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -33,10 +34,13 @@ import androidx.lifecycle.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.jraf.android.fotomator.R
+import org.jraf.android.fotomator.configure.Configure
+import org.jraf.android.fotomator.configure.isConfigureIntent
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.util.fireAndForget
 import org.jraf.android.util.handler.HandlerUtil
 import org.jraf.android.util.log.Log
+import org.jraf.android.util.string.StringUtil
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
@@ -61,6 +65,8 @@ class MainViewModel @Inject constructor(
     val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
     val setupSlackAuth = MutableLiveData<Unit?>()
 
+    var automaticallyStopServiceDateTimeSetupByConfigureLink = false
+
     val automaticallyStopServiceDateTimeFormatted = prefs.automaticallyStopServiceDateTime.map { automaticallyStopServiceDateTime ->
         if (automaticallyStopServiceDateTime == null) {
             context.getString(R.string.main_automaticallyStopServiceDateTime_notSet)
@@ -76,12 +82,13 @@ class MainViewModel @Inject constructor(
         isServiceEnabledLiveData.value = !isServiceEnabledLiveData.value!!
         val serviceEnabled = isServiceEnabledLiveData.value!!
         Log.d("serviceEnabled=$serviceEnabled")
-        if (serviceEnabled) {
+        if (serviceEnabled && !automaticallyStopServiceDateTimeSetupByConfigureLink) {
             // Wait a few milliseconds for the switch animation to have time to run
             HandlerUtil.getMainHandler().postDelayed(300L) {
                 isAutomaticallyStopServiceDialogVisible.value = true
             }
         }
+        automaticallyStopServiceDateTimeSetupByConfigureLink = false
     }
 
     fun onChannelClick() {
@@ -137,5 +144,22 @@ class MainViewModel @Inject constructor(
         prefs.slackTeamName.value = null
         prefs.slackAuthToken = null
         setupSlackAuth.fireAndForget()
+    }
+
+    fun handleConfigureIntent(intent: Intent) {
+        val isConfigureIntent = isConfigureIntent(intent)
+        Log.d("intent=${StringUtil.toString(intent)} isConfigureIntent=$isConfigureIntent")
+
+        if (isConfigureIntent) {
+            val configure = Configure.fromIntent(intent)
+            Log.d("configure=$configure")
+
+            prefs.slackChannel = configure.channel
+            prefs.automaticallyStopServiceDateTime.value = configure.automaticallyStopServiceDateTime
+
+            if (configure.automaticallyStopServiceDateTime != null) {
+                automaticallyStopServiceDateTimeSetupByConfigureLink = true
+            }
+        }
     }
 }

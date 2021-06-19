@@ -24,9 +24,11 @@
  */
 package org.jraf.android.fotomator.upload.client.slack
 
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
 import org.jraf.android.fotomator.upload.client.slack.retrofit.SlackRetrofitService
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiChannel
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
@@ -39,6 +41,9 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
     private fun createRetrofit(): Retrofit = Retrofit.Builder()
         .baseUrl(SLACK_BASE_URI)
         .addConverterFactory(MoshiConverterFactory.create())
+        .client(OkHttpClient.Builder().addInterceptor(
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        ).build())
         .build()
 
     private val service: SlackRetrofitService = createRetrofit().create(SlackRetrofitService::class.java)
@@ -65,10 +70,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         val part = MultipartBody.Part.createFormData(
             "file",
             FILE_NAME,
-            RequestBody.create(
-                MediaType.parse("image/*"),
-                fileInputStream.readBytes()
-            )
+            fileInputStream.readBytes().toRequestBody(contentType = "image/*".toMediaType())
         )
 
         return try {

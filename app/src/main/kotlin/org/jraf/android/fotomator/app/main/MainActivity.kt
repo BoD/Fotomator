@@ -85,12 +85,19 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             )
         }
 
-        observeUi()
+        observeViewModel()
 
         checkPermissions()
+
+        viewModel.handleConfigureIntent(intent)
     }
 
-    private fun observeUi() {
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) viewModel.handleConfigureIntent(intent)
+    }
+
+    private fun observeViewModel() {
         viewModel.isServiceEnabledLiveData.observe(this) { serviceEnabled ->
             Log.d("serviceEnabled=$serviceEnabled")
             if (serviceEnabled) {

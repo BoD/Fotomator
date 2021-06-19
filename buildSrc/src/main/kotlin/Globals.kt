@@ -24,6 +24,7 @@ object Versions {
     const val KPREFS = "1.6.0"
     const val RETROFIT = "2.9.0"
     const val MOSHI = "1.12.0"
+    const val OKHTTP = "4.9.0"
     const val MATERIAL = "1.3.0"
     const val PLAY_SERVICES_OSS_LICENSE = "17.0.0"
 
