@@ -64,7 +64,7 @@ class MainViewModel @Inject constructor(
     val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
     val setupSlackAuth = MutableLiveData<Unit?>()
 
-    val uiState: Flow<UiState> = combine(
+    val layoutState: Flow<MainLayoutState> = combine(
         prefs.isServiceEnabledFlow,
         prefs.automaticallyStopServiceDateTimeFlow,
         prefs.slackTeamNameFlow,
@@ -72,7 +72,7 @@ class MainViewModel @Inject constructor(
         isAutomaticallyStopServiceDialogVisible,
     ) { isServiceEnabled, automaticallyStopServiceDateTime, slackTeamName, slackChannel, isAutomaticallyStopServiceDialogVisible ->
         val automaticallyStopServiceDateTimeFormatted = formatAutomaticallyStopServiceDateTime(automaticallyStopServiceDateTime)
-        UiState(
+        MainLayoutState(
             isServiceEnabled = isServiceEnabled,
             slackTeamName = slackTeamName,
             slackChannel = slackChannel,
@@ -81,7 +81,7 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    fun getInitialState() = UiState(
+    fun getInitialState() = MainLayoutState(
         isServiceEnabled = prefs.isServiceEnabled,
         slackTeamName = prefs.slackTeamName,
         slackChannel = prefs.slackChannel,

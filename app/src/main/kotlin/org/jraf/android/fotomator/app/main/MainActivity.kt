@@ -64,9 +64,9 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val uiState by viewModel.uiState.collectAsState(initial = viewModel.getInitialState())
+            val layoutState by viewModel.layoutState.collectAsState(initial = viewModel.getInitialState())
             MainLayout(
-                uiState = uiState,
+                state = layoutState,
                 onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
                 onAboutClick = ::onAboutClick,
                 onDisconnectSlackClick = viewModel::onDisconnectSlackClick,

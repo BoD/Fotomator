@@ -64,7 +64,7 @@ import androidx.compose.ui.unit.sp
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.theme.FotomatorTheme
 
-data class UiState(
+data class MainLayoutState(
     val isServiceEnabled: Boolean,
     val slackTeamName: String?,
     val slackChannel: String?,
@@ -74,7 +74,7 @@ data class UiState(
 
 @Composable
 fun MainLayout(
-    uiState: UiState,
+    state: MainLayoutState,
     onServiceEnabledClick: () -> Unit,
     onDisconnectSlackClick: () -> Unit,
     onAboutClick: () -> Unit,
@@ -121,13 +121,13 @@ fun MainLayout(
             },
             content = {
                 MainContent(
-                    uiState,
+                    state,
                     onServiceEnabledClick,
                     onChannelClick,
                     onAutomaticallyStopServiceDateTimeClick,
                 )
 
-                if (uiState.isAutomaticallyStopServiceDialogVisible) {
+                if (state.isAutomaticallyStopServiceDialogVisible) {
                     AutomaticallyStopServiceDialog(onAutomaticallyStopServiceDialogManuallyClick, onAutomaticallyStopServiceDialogSetDateTimeClick)
                 }
             }
@@ -137,7 +137,7 @@ fun MainLayout(
 
 @Composable
 private fun MainContent(
-    uiState: UiState,
+    state: MainLayoutState,
     onServiceEnabledClick: () -> Unit,
     onChannelClick: () -> Unit,
     onAutomaticallyStopServiceDateTimeClick: () -> Unit,
@@ -154,26 +154,26 @@ private fun MainContent(
                     .padding(16.dp)
             ) {
                 Text(
-                    stringResource(if (uiState.isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
+                    stringResource(if (state.isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier.alignByBaseline()
                 )
                 Spacer(Modifier.width(8.dp))
                 Switch(
-                    checked = uiState.isServiceEnabled,
+                    checked = state.isServiceEnabled,
                     onCheckedChange = null,
                     modifier = Modifier.alignByBaseline()
                 )
             }
 
-            if (uiState.slackChannel != null) {
+            if (state.slackChannel != null) {
                 Spacer(Modifier.height(16.dp))
-                OutlinedButton(onClick = onChannelClick, enabled = uiState.isServiceEnabled) {
-                    Text(stringResource(R.string.main_channel, "${uiState.slackTeamName} #${uiState.slackChannel}"), letterSpacing = 0.sp)
+                OutlinedButton(onClick = onChannelClick, enabled = state.isServiceEnabled) {
+                    Text(stringResource(R.string.main_channel, "${state.slackTeamName} #${state.slackChannel}"), letterSpacing = 0.sp)
                 }
                 Spacer(Modifier.height(16.dp))
-                OutlinedButton(onClick = onAutomaticallyStopServiceDateTimeClick, enabled = uiState.isServiceEnabled) {
-                    Text(uiState.automaticallyStopServiceDateTimeFormatted, letterSpacing = 0.sp)
+                OutlinedButton(onClick = onAutomaticallyStopServiceDateTimeClick, enabled = state.isServiceEnabled) {
+                    Text(state.automaticallyStopServiceDateTimeFormatted, letterSpacing = 0.sp)
                 }
             }
         }
@@ -208,7 +208,7 @@ private fun AutomaticallyStopServiceDialog(
 @Composable
 private fun MainLayoutPreview() {
     MainLayout(
-        UiState(
+        state = MainLayoutState(
             isServiceEnabled = true,
             slackTeamName = "BoD, inc.",
             slackChannel = "test",
