@@ -92,7 +92,7 @@ class SlackAuthViewModel @Inject constructor(
                         }
                         is OAuthAccess.Success -> {
                             prefs.slackAuthToken = oAuthAccess.accessToken
-                            prefs.slackTeamName.value = oAuthAccess.teamName
+                            prefs.slackTeamName = oAuthAccess.teamName
                             showToast(R.string.slack_auth_success)
                             finishWithSuccess.value = Unit
                         }
