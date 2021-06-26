@@ -38,6 +38,8 @@
     <string name="slack_pick_channel_title">Pick a channel</string>
     <string name="slack_pick_channel_subtitle">Photos will be shared to the selected channel</string>
     <string name="slack_pick_channel_failed">Could not fetch channel list, please try again</string>
+    <string name="slack_pick_channel_search">Search</string>
+
 
     <!-- Notifications -->
     <string name="notification_channel_main_name">Main channel</string>

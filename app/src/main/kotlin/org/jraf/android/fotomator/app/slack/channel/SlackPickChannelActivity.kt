@@ -56,6 +56,10 @@ class SlackPickChannelActivity : AppCompatActivity() {
                     Log.d("channel=$channel")
                     setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channel.name))
                     finish()
+                },
+                onSearchQueryChange = { query ->
+                    Log.d("query=$query")
+                    viewModel.updateSearchQuery(query)
                 }
             )
         }
