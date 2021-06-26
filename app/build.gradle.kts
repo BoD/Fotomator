@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion(AppConfig.COMPILE_SDK)
+    compileSdk = AppConfig.COMPILE_SDK
 
     defaultConfig {
         applicationId = AppConfig.APPLICATION_ID
-        minSdkVersion(AppConfig.MIN_SDK)
-        targetSdkVersion(AppConfig.TARGET_SDK)
+        minSdk = AppConfig.MIN_SDK
+        targetSdk = AppConfig.TARGET_SDK
         versionCode = AppConfig.buildNumber
         versionName = AppConfig.buildProperties["versionName"]
 
@@ -23,10 +23,10 @@ android {
         // For now we enable debug logs all the configs
         buildConfigField("boolean", "DEBUG_LOGS", "true")
 
-        resConfigs("en", "fr")
+        resourceConfigurations.set("en", "fr")
 
         // Useful for api keys in the manifest (Maps, Crashlytics, ...)
-        setManifestPlaceholders(AppConfig.buildProperties as Map<String, Any>)
+        manifestPlaceholders.set(AppConfig.buildProperties as Map<String, Any>)
 
         // Setting this to true disables the png generation at buildtime
         // (see http://android-developers.blogspot.fr/2016/02/android-support-library-232.html)
@@ -87,7 +87,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
-        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 
     composeOptions {
@@ -156,3 +156,5 @@ dependencies {
     }
     testImplementation("junit", "junit", Versions.JUNIT)
 }
+
+// Run `./gradlew bundleRelease` to build a release version
