@@ -25,12 +25,13 @@
 package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.annotation.StringRes
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
+import org.jraf.android.fotomator.upload.client.slack.SlackChannel
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.fotomator.util.fireAndForget
 import javax.inject.Inject
@@ -43,19 +44,33 @@ class SlackPickChannelViewModel @Inject constructor(
     val toast = MutableLiveData<Int?>()
     val finishWithError = MutableLiveData<Unit>()
 
-    val layoutState: LiveData<SlackPickChannelLayoutState> = liveData {
-        emit(SlackPickChannelLayoutState.Loading)
-        val channelList = slackClient.getChannelList()
-        if (channelList == null) {
-            showToast(R.string.slack_pick_channel_failed)
-            finishWithError.value = Unit
-        } else {
-            emit(SlackPickChannelLayoutState.Loaded(channelList))
+    private var channelList: List<SlackChannel>? = null
+
+    val layoutState = MutableLiveData<SlackPickChannelLayoutState>(SlackPickChannelLayoutState.Loading)
+
+    init {
+        viewModelScope.launch {
+            val channelList = slackClient.getChannelList()
+            this@SlackPickChannelViewModel.channelList = channelList
+            if (channelList == null) {
+                showToast(R.string.slack_pick_channel_failed)
+                finishWithError.value = Unit
+            } else {
+                layoutState.value = SlackPickChannelLayoutState.Loaded(channelList, null)
+            }
         }
     }
 
-
     private fun showToast(@StringRes resId: Int) {
         toast.fireAndForget(resId)
+    }
+
+    fun updateSearchQuery(query: String) {
+        val trimmedQuery = query.trim()
+        layoutState.value = SlackPickChannelLayoutState.Loaded(channelList!!.filter { channel ->
+            channel.name.contains(trimmedQuery, ignoreCase = true) ||
+                    channel.purpose?.contains(trimmedQuery, ignoreCase = true) == true ||
+                    channel.topic?.contains(trimmedQuery, ignoreCase = true) == true
+        }, query)
     }
 }

@@ -27,6 +27,7 @@ package org.jraf.android.fotomator.prefs
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jraf.android.kprefs.Key
 import org.jraf.android.kprefs.Prefs
 import javax.inject.Inject
@@ -38,18 +39,25 @@ class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
 
     var isServiceEnabled: Boolean by prefs.Boolean(false, KEY_IS_SERVICE_ENABLED)
     val isServiceEnabledLiveData: MutableLiveData<Boolean> by prefs.BooleanLiveData(false, KEY_IS_SERVICE_ENABLED)
-    val automaticallyStopServiceDateTime: MutableLiveData<Long?> by prefs.LongLiveData(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
+    val automaticallyStopServiceDateTimeLiveData: MutableLiveData<Long?> by prefs.LongLiveData(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
 
     var slackAuthToken: String? by prefs.String()
 
-    val slackTeamName: MutableLiveData<String?> by prefs.StringLiveData()
+    var slackTeamName: String? by prefs.String(KEY_SLACK_TEAM_NAME)
 
     var slackChannel: String? by prefs.String(KEY_SLACK_CHANNEL)
-    val slackChannelLiveData: MutableLiveData<String?> by prefs.StringLiveData(KEY_SLACK_CHANNEL)
+
+    val isServiceEnabledFlow: MutableStateFlow<Boolean> by prefs.BooleanFlow(false, KEY_IS_SERVICE_ENABLED)
+    val automaticallyStopServiceDateTimeFlow: MutableStateFlow<Long?> by prefs.LongFlow(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
+    val slackTeamNameFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_TEAM_NAME)
+    val slackChannelFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_CHANNEL)
+
 
     companion object {
         private val KEY_IS_SERVICE_ENABLED = Key("isServiceEnabled")
         private val KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME = Key("automaticallyStopServiceDateTime")
         private val KEY_SLACK_CHANNEL = Key("slackChannel")
+        private val KEY_SLACK_TEAM_NAME = Key("slackTeamName")
+
     }
 }

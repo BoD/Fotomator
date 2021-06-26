@@ -37,8 +37,8 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -64,22 +64,14 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val isServiceEnabled by viewModel.isServiceEnabledLiveData.observeAsState(false)
-            val slackChannel by viewModel.slackChannelLiveData.observeAsState()
-            val slackTeamName by viewModel.slackTeamName.observeAsState()
-            val automaticallyStopServiceDateTimeFormatted by viewModel.automaticallyStopServiceDateTimeFormatted.observeAsState("")
-            val isAutomaticallyStopServiceDialogVisible by viewModel.isAutomaticallyStopServiceDialogVisible.observeAsState(false)
+            val layoutState by viewModel.layoutState.collectAsState(initial = viewModel.getInitialState())
             MainLayout(
-                isServiceEnabled = isServiceEnabled,
-                slackChannel = slackChannel,
-                slackTeamName = slackTeamName,
-                automaticallyStopServiceDateTimeFormatted = automaticallyStopServiceDateTimeFormatted,
+                state = layoutState,
                 onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
                 onAboutClick = ::onAboutClick,
                 onDisconnectSlackClick = viewModel::onDisconnectSlackClick,
                 onChannelClick = viewModel::onChannelClick,
                 onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick,
-                isAutomaticallyStopServiceDialogVisible = isAutomaticallyStopServiceDialogVisible,
                 onAutomaticallyStopServiceDialogSetDateTimeClick = viewModel::onAutomaticallyStopServiceDialogSetDateTimeClick,
                 onAutomaticallyStopServiceDialogManuallyClick = viewModel::onAutomaticallyStopServiceDialogManuallyClick,
             )

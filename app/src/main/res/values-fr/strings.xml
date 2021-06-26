@@ -38,6 +38,7 @@
     <string name="slack_pick_channel_title">Choisissez un canal</string>
     <string name="slack_pick_channel_subtitle">Les photos seront partagées sur le canal sélectionné</string>
     <string name="slack_pick_channel_failed">Impossible de charger la liste des canaux, veuillez ressayer</string>
+    <string name="slack_pick_channel_search">Recherche</string>
 
     <!-- Notifications -->
     <string name="notification_channel_main_name">Canal principal</string>

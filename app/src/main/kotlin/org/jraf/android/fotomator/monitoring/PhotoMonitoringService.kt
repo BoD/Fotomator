@@ -98,7 +98,7 @@ class PhotoMonitoringService : Service() {
 
     private fun startForeground() {
         createNotificationChannel(this)
-        val notification = createPhotoMonitoringServiceNotification(this, appPrefs.automaticallyStopServiceDateTime.value)
+        val notification = createPhotoMonitoringServiceNotification(this, appPrefs.automaticallyStopServiceDateTimeLiveData.value)
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
@@ -234,11 +234,11 @@ class PhotoMonitoringService : Service() {
     }
 
     private fun startObservingAutomaticallyStopServiceDateTime() {
-        appPrefs.automaticallyStopServiceDateTime.observeForever(automaticallyStopServiceDateTimeObserver)
+        appPrefs.automaticallyStopServiceDateTimeLiveData.observeForever(automaticallyStopServiceDateTimeObserver)
     }
 
     private fun stopObservingAutomaticallyStopServiceDateTime() {
-        appPrefs.automaticallyStopServiceDateTime.removeObserver(automaticallyStopServiceDateTimeObserver)
+        appPrefs.automaticallyStopServiceDateTimeLiveData.removeObserver(automaticallyStopServiceDateTimeObserver)
     }
 
     private val automaticallyStopServiceDateTimeObserver = Observer<Long?> { automaticallyStopServiceDateTime ->
@@ -270,7 +270,7 @@ class PhotoMonitoringService : Service() {
             uploadScheduler.removeAllFromSchedule()
         }
         stopObservingAutomaticallyStopServiceDateTime()
-        appPrefs.automaticallyStopServiceDateTime.value = null
+        appPrefs.automaticallyStopServiceDateTimeLiveData.value = null
         automaticallyStopServiceScheduledTask?.cancel(true)
         automaticallyStopServiceScheduledTask = null
         super.onDestroy()

@@ -28,11 +28,12 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.os.postDelayed
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.configure.Configure
 import org.jraf.android.fotomator.configure.isConfigureIntent
@@ -48,35 +49,55 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     private val prefs: AppPrefs,
 ) : AndroidViewModel(context.applicationContext as android.app.Application) {
     val isServiceEnabledLiveData: MutableLiveData<Boolean> = prefs.isServiceEnabledLiveData
 
     val slackAuthToken: String? by prefs::slackAuthToken
     var slackChannel: String? by prefs::slackChannel
-    val slackChannelLiveData: LiveData<String?> = prefs.slackChannelLiveData
-    val slackTeamName: LiveData<String?> = prefs.slackTeamName
 
     val pickSlackChannel = MutableLiveData<Unit?>()
-    val isAutomaticallyStopServiceDialogVisible = MutableLiveData(false)
+    private val isAutomaticallyStopServiceDialogVisible = MutableStateFlow(false)
     val showAutomaticallyStopServiceDatePicker = MutableLiveData<Unit?>()
     val showAutomaticallyStopServiceTimePicker = MutableLiveData<Unit?>()
     val automaticallyStopServiceDateIsInThePast = MutableLiveData<Unit?>()
     val setupSlackAuth = MutableLiveData<Unit?>()
 
-    var automaticallyStopServiceDateTimeSetupByConfigureLink = false
+    val layoutState: Flow<MainLayoutState> = combine(
+        prefs.isServiceEnabledFlow,
+        prefs.automaticallyStopServiceDateTimeFlow,
+        prefs.slackTeamNameFlow,
+        prefs.slackChannelFlow,
+        isAutomaticallyStopServiceDialogVisible,
+    ) { isServiceEnabled, automaticallyStopServiceDateTime, slackTeamName, slackChannel, isAutomaticallyStopServiceDialogVisible ->
+        val automaticallyStopServiceDateTimeFormatted = formatAutomaticallyStopServiceDateTime(automaticallyStopServiceDateTime)
+        MainLayoutState(
+            isServiceEnabled = isServiceEnabled,
+            slackTeamName = slackTeamName,
+            slackChannel = slackChannel,
+            automaticallyStopServiceDateTimeFormatted = automaticallyStopServiceDateTimeFormatted,
+            isAutomaticallyStopServiceDialogVisible = isAutomaticallyStopServiceDialogVisible
+        )
+    }
 
-    val automaticallyStopServiceDateTimeFormatted = prefs.automaticallyStopServiceDateTime.map { automaticallyStopServiceDateTime ->
-        if (automaticallyStopServiceDateTime == null) {
-            context.getString(R.string.main_automaticallyStopServiceDateTime_notSet)
-        } else {
-            val formattedDateTime = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(automaticallyStopServiceDateTime))
-            context.getString(R.string.main_automaticallyStopServiceDateTime_set, formattedDateTime)
-        }
+    fun getInitialState() = MainLayoutState(
+        isServiceEnabled = prefs.isServiceEnabled,
+        slackTeamName = prefs.slackTeamName,
+        slackChannel = prefs.slackChannel,
+        automaticallyStopServiceDateTimeFormatted = formatAutomaticallyStopServiceDateTime(prefs.automaticallyStopServiceDateTimeLiveData.value),
+        isAutomaticallyStopServiceDialogVisible = false,
+    )
+
+    private fun formatAutomaticallyStopServiceDateTime(automaticallyStopServiceDateTime: Long?) = if (automaticallyStopServiceDateTime == null) {
+        context.getString(R.string.main_automaticallyStopServiceDateTime_notSet)
+    } else {
+        val formattedDateTime = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(automaticallyStopServiceDateTime))
+        context.getString(R.string.main_automaticallyStopServiceDateTime_set, formattedDateTime)
     }
 
     private var automaticallyStopServiceDatePicked: Long? = null
+    private var automaticallyStopServiceDateTimeSetupByConfigureLink = false
 
     fun onServiceEnabledSwitchClick() {
         isServiceEnabledLiveData.value = !isServiceEnabledLiveData.value!!
@@ -108,7 +129,7 @@ class MainViewModel @Inject constructor(
         showAutomaticallyStopServiceDatePicker.value = null
         automaticallyStopServiceDatePicked = timestamp
         if (timestamp == null) {
-            prefs.automaticallyStopServiceDateTime.value = null
+            prefs.automaticallyStopServiceDateTimeLiveData.value = null
             return
         }
         showAutomaticallyStopServiceTimePicker.fireAndForget()
@@ -117,7 +138,7 @@ class MainViewModel @Inject constructor(
     fun onAutomaticallyStopServiceTimePicked(hour: Int?, minute: Int?) {
         showAutomaticallyStopServiceTimePicker.value = null
         if (hour == null || minute == null) {
-            prefs.automaticallyStopServiceDateTime.value = null
+            prefs.automaticallyStopServiceDateTimeLiveData.value = null
             return
         }
         val calendar = Calendar.getInstance().apply {
@@ -127,10 +148,10 @@ class MainViewModel @Inject constructor(
         }
         Log.d("calendar=$calendar")
         if (calendar.timeInMillis <= System.currentTimeMillis()) {
-            prefs.automaticallyStopServiceDateTime.value = null
+            prefs.automaticallyStopServiceDateTimeLiveData.value = null
             automaticallyStopServiceDateIsInThePast.fireAndForget()
         } else {
-            prefs.automaticallyStopServiceDateTime.value = calendar.time.time
+            prefs.automaticallyStopServiceDateTimeLiveData.value = calendar.time.time
         }
     }
 
@@ -141,7 +162,7 @@ class MainViewModel @Inject constructor(
     fun onDisconnectSlackClick() {
         prefs.isServiceEnabled = false
         prefs.slackChannel = null
-        prefs.slackTeamName.value = null
+        prefs.slackTeamName = null
         prefs.slackAuthToken = null
         setupSlackAuth.fireAndForget()
     }
@@ -155,7 +176,7 @@ class MainViewModel @Inject constructor(
             Log.d("configure=$configure")
 
             prefs.slackChannel = configure.channel
-            prefs.automaticallyStopServiceDateTime.value = configure.automaticallyStopServiceDateTime
+            prefs.automaticallyStopServiceDateTimeLiveData.value = configure.automaticallyStopServiceDateTime
 
             if (configure.automaticallyStopServiceDateTime != null) {
                 automaticallyStopServiceDateTimeSetupByConfigureLink = true
