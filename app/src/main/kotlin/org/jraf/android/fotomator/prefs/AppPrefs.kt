@@ -52,6 +52,7 @@ class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
     val slackTeamNameFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_TEAM_NAME)
     val slackChannelFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_CHANNEL)
 
+    var isFirstRun: Boolean by prefs.Boolean(default = true)
 
     companion object {
         private val KEY_IS_SERVICE_ENABLED = Key("isServiceEnabled")

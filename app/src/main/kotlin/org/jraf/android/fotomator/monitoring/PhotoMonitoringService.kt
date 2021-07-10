@@ -134,14 +134,28 @@ class PhotoMonitoringService : Service() {
     }
 
     private fun handleLatestContent() {
-        Log.d()
+        val isFirstRun = appPrefs.isFirstRun
+        Log.d("isFirstRun=$isFirstRun")
+        if (isFirstRun) appPrefs.isFirstRun = false
         val internalMediaContentUri = getLatestContentFromMediaStore(MediaStore.Images.Media.INTERNAL_CONTENT_URI)
         Log.d("internalMediaContentUri=$internalMediaContentUri")
-        if (internalMediaContentUri != null) handleMedia(internalMediaContentUri)
+        if (internalMediaContentUri != null) {
+            if (isFirstRun) {
+                optOutMediaOnFirstRun(internalMediaContentUri)
+            } else {
+                handleMedia(internalMediaContentUri)
+            }
+        }
 
         val externalMediaContentUri = getLatestContentFromMediaStore(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         Log.d("externalMediaContentUri=$externalMediaContentUri")
-        if (externalMediaContentUri != null) handleMedia(externalMediaContentUri)
+        if (externalMediaContentUri != null) {
+            if (isFirstRun) {
+                optOutMediaOnFirstRun(externalMediaContentUri)
+            } else {
+                handleMedia(externalMediaContentUri)
+            }
+        }
     }
 
     private fun stopMonitoring() {
@@ -192,6 +206,18 @@ class PhotoMonitoringService : Service() {
 
         if (!allReadyKnown) uploadScheduler.addToSchedule(mediaUri)
     }
+
+    /**
+     * When running the app for the first time you probably don't want old pictures to be
+     * picked up. This opts them out.
+     */
+    private fun optOutMediaOnFirstRun(mediaUri: Uri) {
+        Log.d("mediaUri=$mediaUri")
+        GlobalScope.launch {
+            database.mediaDao().insert(Media(uri = mediaUri.toString(), uploadState = MediaUploadState.OPT_OUT))
+        }
+    }
+
 
     private fun registerBroadcastReceiver() {
         Log.d()

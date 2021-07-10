@@ -1,9 +1,11 @@
 object Versions {
     // Misc and plugins
-    const val GRADLE = "7.1"
+    const val GRADLE = "7.1.1"
+
+    // XXX Cannot use 1.5.20 for now because of this issue: https://github.com/google/dagger/issues/2684
     const val KOTLIN = "1.5.10"
     const val BEN_MANES_VERSIONS_PLUGIN = "0.39.0"
-    const val ANDROID_GRADLE_PLUGIN = "7.1.0-alpha02"
+    const val ANDROID_GRADLE_PLUGIN = "7.1.0-alpha03"
     const val OSS_LICENSES_PLUGIN = "0.10.4"
 
     // App dependencies
@@ -29,7 +31,7 @@ object Versions {
     const val PLAY_SERVICES_OSS_LICENSE = "17.0.0"
 
     // Testing dependencies
-    const val ESPRESSO = "3.3.0"
+    const val ESPRESSO = "3.4.0"
     const val JUNIT = "4.13.2"
 }
 
