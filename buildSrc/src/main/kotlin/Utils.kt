@@ -145,7 +145,7 @@ fun Project.printSplashScreen() {
             / // / , _/ __ |/ _/_/ _ \/ __/ _ `/
             \___/_/¦_/_/ |_/_/ (_)___/_/  \_, /
                                          /___/
-            ${ansiReset}
+            $ansiReset
             Building ${rootProject.name}.
             
             ${getFrenchDate()}

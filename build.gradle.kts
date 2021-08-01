@@ -54,7 +54,7 @@ tasks {
         resolutionStrategy {
             componentSelection {
                 all {
-                    if (setOf(/*"alpha", "beta", */"rc", "preview", "eap", "m1", "m2").any { candidate.version.contains(it, true) }) {
+                    if (setOf("alpha", "beta", "rc", "preview", "eap", "m1", "m2").any { candidate.version.contains(it, true) }) {
                         reject("Non stable")
                     }
                 }
