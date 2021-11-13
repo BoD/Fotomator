@@ -91,7 +91,7 @@ class SlackAuthActivity : AppCompatActivity() {
 
     companion object {
         val CONTRACT = object : ActivityResultContract<Unit, Boolean>() {
-            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackAuthActivity::class.java)
+            override fun createIntent(context: Context, input: Unit) = Intent(context, SlackAuthActivity::class.java)
             override fun parseResult(resultCode: Int, intent: Intent?) = resultCode == RESULT_OK
         }
     }

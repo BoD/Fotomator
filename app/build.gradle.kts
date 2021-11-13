@@ -81,12 +81,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
         freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 
@@ -112,7 +112,6 @@ dependencies {
     implementation("androidx.room", "room-runtime", Versions.ANDROIDX_ROOM)
     kapt("androidx.room", "room-compiler", Versions.ANDROIDX_ROOM)
     implementation("androidx.room", "room-ktx", Versions.ANDROIDX_ROOM)
-    implementation("androidx.constraintlayout", "constraintlayout", Versions.ANDROIDX_CONSTRAINT_LAYOUT)
     implementation("androidx.work", "work-runtime-ktx", Versions.ANDROIDX_WORK_MANAGER)
     implementation("androidx.hilt", "hilt-lifecycle-viewmodel", Versions.ANDROIDX_HILT_LIFECYCLE_VIEWMODEL)
     kapt("androidx.hilt", "hilt-compiler", Versions.ANDROIDX_HILT)
@@ -146,6 +145,7 @@ dependencies {
     implementation("androidx.compose.material", "material", Versions.ANDROIDX_COMPOSE)
     implementation("androidx.compose.material", "material-icons-core", Versions.ANDROIDX_COMPOSE)
     implementation("androidx.compose.material", "material-icons-extended", Versions.ANDROIDX_COMPOSE)
+    implementation("androidx.compose.material3", "material3", Versions.ANDROIDX_COMPOSE_MATERIAL3)
     implementation("androidx.activity", "activity-compose", Versions.ANDROIDX_ACTIVITY)
     implementation("androidx.lifecycle", "lifecycle-viewmodel-compose", Versions.ANDROIDX_LIFECYCLE_VIEWMODEL_COMPOSE)
     implementation("androidx.compose.runtime", "runtime-livedata", Versions.ANDROIDX_COMPOSE)

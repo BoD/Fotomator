@@ -22,6 +22,7 @@
         <!-- Main -->
         <activity
             android:name=".app.main.MainActivity"
+            android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.Fotomator.NoActionBar">
             <intent-filter>
@@ -44,8 +45,10 @@
         <!-- Slack auth -->
         <activity
             android:name=".app.slack.auth.SlackAuthActivity"
+            android:exported="true"
             android:label="@string/slack_auth_title"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Fotomator.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -61,11 +64,14 @@
         <!-- Slack pick channel -->
         <activity
             android:name=".app.slack.channel.SlackPickChannelActivity"
-            android:label="@string/slack_pick_channel_title" />
+            android:exported="false"
+            android:label="@string/slack_pick_channel_title"
+            android:theme="@style/Theme.Fotomator.NoActionBar" />
 
         <!-- About -->
         <activity
             android:name="org.jraf.android.util.about.AboutActivity"
+            android:exported="false"
             android:label="@string/about_title" />
 
         <!-- Photo monitoring service -->
@@ -83,7 +89,9 @@
         </provider>
 
         <!-- Boot completed broadcast receiver -->
-        <receiver android:name=".monitoring.BootCompletedReceiver">
+        <receiver
+            android:name=".monitoring.BootCompletedReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />

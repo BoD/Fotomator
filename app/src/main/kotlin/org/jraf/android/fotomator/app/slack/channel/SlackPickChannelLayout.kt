@@ -42,8 +42,17 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ListItem
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults.smallTopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,32 +64,80 @@ import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.theme.FotomatorTheme
 import org.jraf.android.fotomator.upload.client.slack.SlackChannel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SlackPickChannelLayout(
     state: SlackPickChannelLayoutState,
+    onBackClick: () -> Unit,
     onChannelClick: (SlackChannel) -> Unit,
     onSearchQueryChange: (String) -> Unit,
 ) {
     FotomatorTheme {
-        Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
-            if (isLoading) {
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                state as SlackPickChannelLayoutState.Loaded
-                Surface {
-                    Column(Modifier.fillMaxSize()) {
-                        SearchTextField(
-                            searchQuery = state.searchQuery,
-                            onQueryChange = onSearchQueryChange,
-                        )
+        Scaffold(
+            topBar = {
+                SmallTopAppBar(
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onBackClick
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    title = {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.slack_pick_channel_title),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.slack_pick_channel_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
 
-                        ChannelList(
-                            channelList = state.channelList,
-                            onChannelClick = onChannelClick
-                        )
-                    }
+                        }
+                    },
+                    colors = smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                )
+            },
+            content = {
+                SlackPickChannelContent(
+                    state,
+                    onChannelClick,
+                    onSearchQueryChange
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun SlackPickChannelContent(
+    state: SlackPickChannelLayoutState,
+    onChannelClick: (SlackChannel) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+) {
+    Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
+        if (isLoading) {
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            state as SlackPickChannelLayoutState.Loaded
+            Surface {
+                Column(Modifier.fillMaxSize()) {
+                    SearchTextField(
+                        searchQuery = state.searchQuery,
+                        onQueryChange = onSearchQueryChange,
+                    )
+
+                    ChannelList(
+                        channelList = state.channelList,
+                        onChannelClick = onChannelClick
+                    )
                 }
             }
         }
@@ -124,16 +181,18 @@ private fun ChannelList(
 
 @Composable
 @OptIn(ExperimentalMaterialApi::class)
-fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
+private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
+    // TODO: Keeping androidx.compose.material.Text here for now, so the styles inherited
+    // from ListItem work correctly
     text = {
-        Text("# ${channel.name}")
+        androidx.compose.material.Text("# ${channel.name}")
     },
     secondaryText = when {
         channel.topic != null -> {
-            { Text(channel.topic, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+            { androidx.compose.material.Text(channel.topic, maxLines = 3, overflow = TextOverflow.Ellipsis) }
         }
         channel.purpose != null -> {
-            { Text(channel.purpose, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+            { androidx.compose.material.Text(channel.purpose, maxLines = 3, overflow = TextOverflow.Ellipsis) }
         }
         else -> null
     },
@@ -143,9 +202,10 @@ fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
 
 @Preview
 @Composable
-fun SlackPickChannelLayoutNotLoadingPreview() {
+private fun SlackPickChannelLayoutNotLoadingPreview() {
     SlackPickChannelLayout(
         state = SlackPickChannelLayoutState.Loading,
+        onBackClick = {},
         onChannelClick = {},
         onSearchQueryChange = {}
     )
@@ -153,7 +213,7 @@ fun SlackPickChannelLayoutNotLoadingPreview() {
 
 @Preview
 @Composable
-fun SlackPickChannelLayoutLoadingPreview() {
+private fun SlackPickChannelLayoutLoadingPreview() {
     SlackPickChannelLayout(
         state = SlackPickChannelLayoutState.Loaded(
             channelList = listOf(
@@ -165,6 +225,7 @@ fun SlackPickChannelLayoutLoadingPreview() {
                     + List(42) { SlackChannel("channel$it", null, null) },
             searchQuery = "Test"
         ),
+        onBackClick = {},
         onChannelClick = {},
         onSearchQueryChange = {}
     )

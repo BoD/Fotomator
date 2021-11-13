@@ -64,7 +64,12 @@ fun createNotificationChannel(context: Context) {
 }
 
 fun createPhotoMonitoringServiceNotification(context: Context, automaticallyStopServiceDateTime: Long?): Notification {
-    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+    val mainActivityPendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
     return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_MAIN)
         .setContentTitle(context.getString(R.string.notification_service_title))
         .setContentText(context.getString(R.string.notification_service_text_withoutEndDate))
@@ -82,7 +87,7 @@ fun createPhotoMonitoringServiceNotification(context: Context, automaticallyStop
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(context.getString(R.string.notification_service_title))
-        .setColor(context.getColor(R.color.colorPrimary))
+        .setColor(context.getColor(R.color.md_theme_light_primary))
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .addAction(
             R.drawable.ic_stop_service_24,
@@ -91,7 +96,7 @@ fun createPhotoMonitoringServiceNotification(context: Context, automaticallyStop
                 context,
                 uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_STOP_SERVICE),
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
         .build()
@@ -100,9 +105,14 @@ fun createPhotoMonitoringServiceNotification(context: Context, automaticallyStop
 fun createPhotoScheduledNotification(
     context: Context,
     mediaUri: Uri,
-    scheduledTaskDelayMs: Long
+    scheduledTaskDelayMs: Long,
 ): Notification? {
-    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+    val mainActivityPendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     val title = context.getString(R.string.notification_scheduled_title)
 
@@ -129,7 +139,7 @@ fun createPhotoScheduledNotification(
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(title)
-        .setColor(context.getColor(R.color.colorPrimary))
+        .setColor(context.getColor(R.color.md_theme_light_primary))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .addAction(
             R.drawable.ic_opt_out_24,
@@ -139,7 +149,7 @@ fun createPhotoScheduledNotification(
                 uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_OPT_OUT)
                     .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
         .addAction(
@@ -150,7 +160,7 @@ fun createPhotoScheduledNotification(
                 uniqueRequestCode(),
                 Intent(PhotoMonitoringService.ACTION_UPLOAD_IMMEDIATELY)
                     .putExtra(PhotoMonitoringService.EXTRA_MEDIA_URI, mediaUri),
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
         .setOngoing(true)
@@ -161,7 +171,12 @@ fun createPhotoUploadingNotification(
     context: Context,
     mediaUri: Uri,
 ): Notification? {
-    val mainActivityPendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
+    val mainActivityPendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     val title = context.getString(R.string.notification_uploading_title)
     val text = context.getString(R.string.notification_uploading_text)
@@ -182,7 +197,7 @@ fun createPhotoUploadingNotification(
         .setContentIntent(mainActivityPendingIntent)
         .setShowWhen(false)
         .setTicker(title)
-        .setColor(context.getColor(R.color.colorPrimary))
+        .setColor(context.getColor(R.color.md_theme_light_primary))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setOngoing(true)
         .build()
@@ -192,7 +207,7 @@ fun createPhotoUploadingNotification(
 private fun createBigPictureStyle(
     photoBitmap: Bitmap,
     title: String,
-    text: String
+    text: String,
 ): NotificationCompat.BigPictureStyle {
     return NotificationCompat.BigPictureStyle()
         .bigPicture(photoBitmap)

@@ -25,6 +25,7 @@
 package org.jraf.android.fotomator.app
 
 import android.app.Application
+import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
 import org.jraf.android.util.log.Log
 
@@ -35,6 +36,9 @@ class Application : Application() {
 
         // Log
         Log.init(this, LOG_TAG, true)
+
+        // Material dynamic colors
+        DynamicColors.applyToActivitiesIfAvailable(this)
     }
 
     companion object {

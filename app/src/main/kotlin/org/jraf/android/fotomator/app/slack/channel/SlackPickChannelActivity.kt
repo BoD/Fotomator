@@ -35,7 +35,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import dagger.hilt.android.AndroidEntryPoint
-import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 
@@ -46,12 +45,13 @@ class SlackPickChannelActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportActionBar!!.subtitle = getString(R.string.slack_pick_channel_subtitle)
+//        supportActionBar!!.subtitle = getString(R.string.slack_pick_channel_subtitle)
 
         setContent {
             val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)
             SlackPickChannelLayout(
                 state = layoutState,
+                onBackClick = ::onBackPressed,
                 onChannelClick = { channel ->
                     Log.d("channel=$channel")
                     setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channel.name))
@@ -78,7 +78,7 @@ class SlackPickChannelActivity : AppCompatActivity() {
         private const val EXTRA_CHANNEL_NAME = "EXTRA_CHANNEL_NAME"
 
         val CONTRACT = object : ActivityResultContract<Unit, String?>() {
-            override fun createIntent(context: Context, input: Unit?) = Intent(context, SlackPickChannelActivity::class.java)
+            override fun createIntent(context: Context, input: Unit) = Intent(context, SlackPickChannelActivity::class.java)
             override fun parseResult(resultCode: Int, intent: Intent?) = intent?.getStringExtra(EXTRA_CHANNEL_NAME)
         }
     }
