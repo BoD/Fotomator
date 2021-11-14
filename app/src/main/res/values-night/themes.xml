@@ -29,6 +29,11 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_primaryInverse</item>
 
         <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
+        <item name="actionBarStyle">@style/Widget.Fotomator.ActionBar</item>
+    </style>
+
+    <style name="Widget.Fotomator.ActionBar" parent="Widget.Material3.Light.ActionBar.Solid">
+        <item name="background">?attr/colorPrimaryContainer</item>
     </style>
 
     <style name="Theme.Fotomator.NoActionBar" parent="Theme.Material3.Dark.NoActionBar">
@@ -61,4 +66,5 @@
 
         <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
     </style>
+
 </resources>

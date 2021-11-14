@@ -62,23 +62,6 @@ private val DarkColors
 
 // Material 3
 
-//private val LightColorScheme
-//    @Composable
-//    get() = lightColorScheme(
-//        primary = colorResource(R.color.colorPrimary),
-//        secondary = colorResource(R.color.colorPrimary),
-//        tertiary = colorResource(R.color.colorPrimary),
-//    )
-//
-//private val DarkColorScheme
-//    @Composable
-//    get() = darkColorScheme(
-//        primary = colorResource(R.color.colorPrimaryDark),
-//        secondary = colorResource(R.color.colorPrimaryDark),
-//        tertiary = colorResource(R.color.colorPrimaryDark),
-//    )
-
-
 private val LightColorScheme
     @Composable
     get() = lightColorScheme(
@@ -108,6 +91,7 @@ private val LightColorScheme
         inverseOnSurface = colorResource(R.color.md_theme_light_inverseOnSurface),
         inverseSurface = colorResource(R.color.md_theme_light_inverseSurface),
     )
+
 private val DarkColorScheme
     @Composable
     get() = darkColorScheme(

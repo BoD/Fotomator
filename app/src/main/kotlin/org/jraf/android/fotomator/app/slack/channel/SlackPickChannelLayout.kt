@@ -182,18 +182,37 @@ private fun ChannelList(
 @Composable
 @OptIn(ExperimentalMaterialApi::class)
 private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
-    // TODO: Keeping androidx.compose.material.Text here for now, so the styles inherited
-    // from ListItem work correctly
+    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    //  so the styles inherited from ListItem work correctly
     text = {
-        androidx.compose.material.Text("# ${channel.name}")
+        androidx.compose.material.Text(
+            "# ${channel.name}",
+            color = MaterialTheme.colorScheme.onSurface
+        )
     },
     secondaryText = when {
         channel.topic != null -> {
-            { androidx.compose.material.Text(channel.topic, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+            {
+                androidx.compose.material.Text(
+                    channel.topic,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
+
         channel.purpose != null -> {
-            { androidx.compose.material.Text(channel.purpose, maxLines = 3, overflow = TextOverflow.Ellipsis) }
+            {
+                androidx.compose.material.Text(
+                    channel.purpose,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
+
         else -> null
     },
     modifier = Modifier.clickable(onClick = onClick),
