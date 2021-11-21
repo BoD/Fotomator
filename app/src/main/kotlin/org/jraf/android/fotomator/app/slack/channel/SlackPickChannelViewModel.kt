@@ -32,7 +32,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.upload.client.slack.SlackChannel
+import org.jraf.android.fotomator.upload.client.slack.SlackChannelOrConversation
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
+import org.jraf.android.fotomator.upload.client.slack.SlackConversation
 import org.jraf.android.fotomator.util.fireAndForget
 import javax.inject.Inject
 
@@ -44,7 +46,7 @@ class SlackPickChannelViewModel @Inject constructor(
     val toast = MutableLiveData<Int?>()
     val finishWithError = MutableLiveData<Unit>()
 
-    private var channelList: List<SlackChannel>? = null
+    private var channelList: List<SlackChannelOrConversation>? = null
 
     val layoutState = MutableLiveData<SlackPickChannelLayoutState>(SlackPickChannelLayoutState.Loading)
 
@@ -68,9 +70,11 @@ class SlackPickChannelViewModel @Inject constructor(
     fun updateSearchQuery(query: String) {
         val trimmedQuery = query.trim()
         layoutState.value = SlackPickChannelLayoutState.Loaded(channelList!!.filter { channel ->
-            channel.name.contains(trimmedQuery, ignoreCase = true) ||
-                    channel.purpose?.contains(trimmedQuery, ignoreCase = true) == true ||
-                    channel.topic?.contains(trimmedQuery, ignoreCase = true) == true
+            channel is SlackChannel && (
+                    channel.name.contains(trimmedQuery, ignoreCase = true) ||
+                            channel.purpose?.contains(trimmedQuery, ignoreCase = true) == true ||
+                            channel.topic?.contains(trimmedQuery, ignoreCase = true) == true
+                    ) || channel is SlackConversation && channel.description.contains(trimmedQuery, ignoreCase = true)
         }, query)
     }
 }

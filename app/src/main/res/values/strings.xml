@@ -4,7 +4,7 @@
     <!-- Main -->
     <string name="main_service_switch_enabled">Fotomator is ON</string>
     <string name="main_service_switch_disabled">Fotomator is off</string>
-    <string name="main_channel">Sharing to %1$s</string>
+    <string name="main_channel">Sharing to</string>
     <string name="main_automaticallyStopServiceDateTime_notSet">End date not set</string>
     <string name="main_automaticallyStopServiceDateTime_set">Will stop on %1$s</string>
 
@@ -39,7 +39,9 @@
     <string name="slack_pick_channel_subtitle">Photos will be shared to the selected channel</string>
     <string name="slack_pick_channel_failed">Could not fetch channel list, please try again</string>
     <string name="slack_pick_channel_search">Search</string>
-
+    <string name="slack_pick_channel_channels">Channels</string>
+    <string name="slack_pick_channel_groupMessaging">Group messaging</string>
+    <string name="slack_pick_channel_privateMessaging">Private messaging</string>
 
     <!-- Notifications -->
     <string name="notification_channel_main_name">Main channel</string>

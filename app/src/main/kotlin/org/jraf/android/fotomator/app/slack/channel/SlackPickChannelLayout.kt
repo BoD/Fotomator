@@ -28,9 +28,12 @@ package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,13 +66,17 @@ import androidx.compose.ui.unit.dp
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.theme.FotomatorTheme
 import org.jraf.android.fotomator.upload.client.slack.SlackChannel
+import org.jraf.android.fotomator.upload.client.slack.SlackChannelOrConversation
+import org.jraf.android.fotomator.upload.client.slack.SlackGroupConversation
+import org.jraf.android.fotomator.upload.client.slack.SlackSingleConversation
+import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SlackPickChannelLayout(
     state: SlackPickChannelLayoutState,
     onBackClick: () -> Unit,
-    onChannelClick: (SlackChannel) -> Unit,
+    onChannelClick: (SlackChannelOrConversation) -> Unit,
     onSearchQueryChange: (String) -> Unit,
 ) {
     FotomatorTheme {
@@ -117,7 +124,7 @@ fun SlackPickChannelLayout(
 @Composable
 private fun SlackPickChannelContent(
     state: SlackPickChannelLayoutState,
-    onChannelClick: (SlackChannel) -> Unit,
+    onChannelClick: (SlackChannelOrConversation) -> Unit,
     onSearchQueryChange: (String) -> Unit,
 ) {
     Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
@@ -162,21 +169,67 @@ private fun SearchTextField(
     )
 }
 
+@Suppress("UNCHECKED_CAST")
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChannelList(
-    channelList: List<SlackChannel>,
-    onChannelClick: (SlackChannel) -> Unit,
+    channelList: List<SlackChannelOrConversation>,
+    onChannelClick: (SlackChannelOrConversation) -> Unit,
 ) {
     LazyColumn(
+        contentPadding = PaddingValues(bottom = 8.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
-        items(channelList) { channel ->
-            ChannelRow(channel, onClick = {
-                onChannelClick(channel)
-            })
+        val channelListByType: Map<KClass<out SlackChannelOrConversation>, List<SlackChannelOrConversation>> = channelList.groupBy { it::class }
+
+        val channels = channelListByType[SlackChannel::class] as? List<SlackChannel>
+        if (channels?.isNotEmpty() == true) {
+            stickyHeader {
+                Separator(stringResource(R.string.slack_pick_channel_channels))
+            }
+            items(channels) { channel ->
+                ChannelRow(channel, onClick = {
+                    onChannelClick(channel)
+                })
+            }
         }
-        item { Spacer(Modifier.height(8.dp)) }
+
+        val groupConversations = channelListByType[SlackGroupConversation::class] as? List<SlackGroupConversation>
+        if (groupConversations?.isNotEmpty() == true) {
+            stickyHeader {
+                Separator(stringResource(R.string.slack_pick_channel_groupMessaging))
+            }
+            items(groupConversations) { channel ->
+                GroupConversationRow(channel, onClick = {
+                    onChannelClick(channel)
+                })
+            }
+        }
+
+        val privateConversations = channelListByType[SlackSingleConversation::class] as? List<SlackSingleConversation>
+        if (privateConversations?.isNotEmpty() == true) {
+            stickyHeader {
+                Separator(stringResource(R.string.slack_pick_channel_privateMessaging))
+            }
+            items(privateConversations) { channel ->
+                SingleConversationRow(channel, onClick = {
+                    onChannelClick(channel)
+                })
+            }
+        }
     }
+}
+
+@Composable
+private fun Separator(title: String) {
+    Text(title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.inverseOnSurface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.inverseSurface)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+    )
 }
 
 @Composable
@@ -218,6 +271,43 @@ private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
     modifier = Modifier.clickable(onClick = onClick),
 )
 
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun SingleConversationRow(conversation: SlackSingleConversation, onClick: () -> Unit) = ListItem(
+    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    //  so the styles inherited from ListItem work correctly
+    text = {
+        androidx.compose.material.Text(
+            conversation.description,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    },
+
+    modifier = Modifier.clickable(onClick = onClick),
+)
+
+@Composable
+@OptIn(ExperimentalMaterialApi::class)
+private fun GroupConversationRow(conversation: SlackGroupConversation, onClick: () -> Unit) = ListItem(
+    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    //  so the styles inherited from ListItem work correctly
+    text = {
+        androidx.compose.material.Text(
+            stringResource(R.string.slack_pick_channel_groupMessaging),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    },
+    secondaryText = {
+        androidx.compose.material.Text(
+            conversation.description,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    },
+    modifier = Modifier.clickable(onClick = onClick),
+)
+
 
 @Preview
 @Composable
@@ -236,12 +326,15 @@ private fun SlackPickChannelLayoutLoadingPreview() {
     SlackPickChannelLayout(
         state = SlackPickChannelLayoutState.Loaded(
             channelList = listOf(
-                SlackChannel(name = "abcd", topic = "This channel is for fun and or work", purpose = "This channel has a purpose"),
-                SlackChannel(name = "test", topic = "I have a topic!", purpose = null),
-                SlackChannel(name = "android", topic = null, purpose = "I have no purpose in life"),
-                SlackChannel(name = "why-not", topic = null, purpose = null),
+                SlackChannel(id = "a", name = "abcd", topic = "This channel is for fun and or work", purpose = "This channel has a purpose"),
+                SlackChannel(id = "b", name = "test", topic = "I have a topic!", purpose = null),
+                SlackChannel(id = "c", name = "android", topic = null, purpose = "I have no purpose in life"),
+                SlackChannel(id = "d", name = "why-not", topic = null, purpose = null),
+                SlackSingleConversation(id = "e", description = "John Doe"),
+                SlackSingleConversation(id = "f", description = "Jane Smith"),
+                SlackGroupConversation(id = "f", description = "Group messaging with: @bod @nounours.bear @doupidou"),
             )
-                    + List(42) { SlackChannel("channel$it", null, null) },
+                    + List(42) { SlackChannel("id", "channel$it", null, null) },
             searchQuery = "Test"
         ),
         onBackClick = {},
@@ -253,7 +346,7 @@ private fun SlackPickChannelLayoutLoadingPreview() {
 sealed class SlackPickChannelLayoutState {
     object Loading : SlackPickChannelLayoutState()
     data class Loaded(
-        val channelList: List<SlackChannel>,
+        val channelList: List<SlackChannelOrConversation>,
         val searchQuery: String?,
     ) : SlackPickChannelLayoutState()
 }

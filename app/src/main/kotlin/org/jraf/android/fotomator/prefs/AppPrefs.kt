@@ -45,19 +45,21 @@ class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
 
     var slackTeamName: String? by prefs.String(KEY_SLACK_TEAM_NAME)
 
-    var slackChannel: String? by prefs.String(KEY_SLACK_CHANNEL)
+    var slackChannelName: String? by prefs.String(KEY_SLACK_CHANNEL_NAME)
+    var slackChannelId: String? by prefs.String(KEY_SLACK_CHANNEL_ID)
 
     val isServiceEnabledFlow: MutableStateFlow<Boolean> by prefs.BooleanFlow(false, KEY_IS_SERVICE_ENABLED)
     val automaticallyStopServiceDateTimeFlow: MutableStateFlow<Long?> by prefs.LongFlow(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
     val slackTeamNameFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_TEAM_NAME)
-    val slackChannelFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_CHANNEL)
+    val slackChannelNameFlow: MutableStateFlow<String?> by prefs.StringFlow(KEY_SLACK_CHANNEL_NAME)
 
     var isFirstRun: Boolean by prefs.Boolean(default = true)
 
     companion object {
         private val KEY_IS_SERVICE_ENABLED = Key("isServiceEnabled")
         private val KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME = Key("automaticallyStopServiceDateTime")
-        private val KEY_SLACK_CHANNEL = Key("slackChannel")
+        private val KEY_SLACK_CHANNEL_NAME = Key("slackChannel")
+        private val KEY_SLACK_CHANNEL_ID = Key("slackChannelId")
         private val KEY_SLACK_TEAM_NAME = Key("slackTeamName")
 
     }

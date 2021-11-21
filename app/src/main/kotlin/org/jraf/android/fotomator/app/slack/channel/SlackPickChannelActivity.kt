@@ -27,6 +27,7 @@ package org.jraf.android.fotomator.app.slack.channel
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Parcelable
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContract
@@ -35,6 +36,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.parcelize.Parcelize
+import org.jetbrains.annotations.Contract
+import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity.Contract.Companion.EXTRA_RESULT
+import org.jraf.android.fotomator.upload.client.slack.SlackChannel
+import org.jraf.android.fotomator.upload.client.slack.SlackConversation
 import org.jraf.android.fotomator.util.observeNonNull
 import org.jraf.android.util.log.Log
 
@@ -44,9 +50,6 @@ class SlackPickChannelActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        supportActionBar!!.subtitle = getString(R.string.slack_pick_channel_subtitle)
-
         setContent {
             val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)
             SlackPickChannelLayout(
@@ -54,7 +57,19 @@ class SlackPickChannelActivity : AppCompatActivity() {
                 onBackClick = ::onBackPressed,
                 onChannelClick = { channel ->
                     Log.d("channel=$channel")
-                    setResult(RESULT_OK, Intent().putExtra(EXTRA_CHANNEL_NAME, channel.name))
+                    setResult(
+                        RESULT_OK,
+                        Intent().putExtra(
+                            EXTRA_RESULT,
+                            Contract.PickChannelResult(
+                                id = channel.id,
+                                name = when (channel) {
+                                    is SlackChannel -> "#${channel.name}"
+                                    is SlackConversation -> channel.description
+                                }
+                            )
+                        )
+                    )
                     finish()
                 },
                 onSearchQueryChange = { query ->
@@ -74,12 +89,15 @@ class SlackPickChannelActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private const val EXTRA_CHANNEL_NAME = "EXTRA_CHANNEL_NAME"
-
-        val CONTRACT = object : ActivityResultContract<Unit, String?>() {
-            override fun createIntent(context: Context, input: Unit) = Intent(context, SlackPickChannelActivity::class.java)
-            override fun parseResult(resultCode: Int, intent: Intent?) = intent?.getStringExtra(EXTRA_CHANNEL_NAME)
+    class Contract : ActivityResultContract<Unit, Contract.PickChannelResult?>() {
+        companion object {
+            const val EXTRA_RESULT = "EXTRA_RESULT"
         }
+
+        @Parcelize
+        data class PickChannelResult(val id: String, val name: String) : Parcelable
+
+        override fun createIntent(context: Context, input: Unit) = Intent(context, SlackPickChannelActivity::class.java)
+        override fun parseResult(resultCode: Int, intent: Intent?): PickChannelResult? = intent?.getParcelableExtra(EXTRA_RESULT)
     }
 }

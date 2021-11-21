@@ -7,7 +7,7 @@
  *                              /___/
  * repository.
  *
- * Copyright (C) 2021-present Benoit 'BoD' Lubek (BoD@JRAF.org)
+ * Copyright (C) 2020-present Benoit 'BoD' Lubek (BoD@JRAF.org)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,30 +22,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jraf.android.fotomator.upload.client.slack
+package org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response
 
-sealed interface SlackChannelOrConversation {
-    val id: String
-}
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-data class SlackChannel(
-    override val id: String,
+@JsonClass(generateAdapter = true)
+data class SlackApiUsersInfoResponse(
+    val ok: Boolean,
+    val user: SlackApiUser,
+)
+
+@JsonClass(generateAdapter = true)
+data class SlackApiUser(
     val name: String,
-    val topic: String?,
-    val purpose: String?,
-) : SlackChannelOrConversation
 
-sealed interface SlackConversation : SlackChannelOrConversation {
-    override val id: String
-    val description: String
-}
+    @Json(name = "real_name")
+    val realName: String,
 
-data class SlackSingleConversation(
-    override val id: String,
-    override val description: String,
-) : SlackConversation
+    val profile: SlackApiProfile,
+)
 
-data class SlackGroupConversation(
-    override val id: String,
-    override val description: String,
-) : SlackConversation
+@JsonClass(generateAdapter = true)
+data class SlackApiProfile(
+    @Json(name = "image_32")
+    val image32: String,
+)

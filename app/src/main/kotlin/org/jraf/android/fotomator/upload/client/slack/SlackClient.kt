@@ -24,6 +24,10 @@
  */
 package org.jraf.android.fotomator.upload.client.slack
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -32,6 +36,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.jraf.android.fotomator.upload.client.slack.retrofit.SlackRetrofitService
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiChannel
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiUser
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiUsersInfoResponse
 import org.jraf.android.util.log.Log
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -66,7 +72,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         }
     }
 
-    suspend fun uploadFile(fileInputStream: InputStream, channels: String): Boolean {
+    suspend fun uploadFile(fileInputStream: InputStream, channelId: String): Boolean {
         val part = MultipartBody.Part.createFormData(
             "file",
             FILE_NAME,
@@ -76,7 +82,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         return try {
             val fileUploadResponse = service.filesUpload(
                 authorization = getAuthorizationHeader(),
-                channels = channels,
+                channelId = channelId,
                 file = part
             )
             fileUploadResponse.ok
@@ -86,18 +92,48 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         }
     }
 
-    suspend fun getChannelList(): List<SlackChannel>? {
-        val res = mutableListOf<SlackChannel>()
+    suspend fun getChannelList(): List<SlackChannelOrConversation>? {
+        val res = mutableListOf<SlackChannelOrConversation>()
         var slackApiConversationsListResponse: SlackApiConversationsListResponse? = null
+        val scope = CoroutineScope(Job())
         return try {
             do {
                 slackApiConversationsListResponse = service.conversationsList(
                     authorization = getAuthorizationHeader(),
                     cursor = slackApiConversationsListResponse?.responseMetadata?.nextCursor?.ifEmpty { null }
                 )
-                res += slackApiConversationsListResponse.channels.map { it.toBusiness() }
+                val deferredSlackApiUsersInfoResponse = mutableListOf<Deferred<Pair<String, SlackApiUsersInfoResponse>>>()
+                for (channel in slackApiConversationsListResponse.channels) {
+                    when {
+                        // Single conversation: retrieve the user's info asynchronously
+                        channel.user != null -> {
+                            if (!channel.isUserDeleted) {
+                                deferredSlackApiUsersInfoResponse += scope.async {
+                                    channel.id to service.usersInfo(
+                                        authorization = getAuthorizationHeader(),
+                                        user = channel.user
+                                    )
+                                }
+                            }
+                        }
+
+                        // Group conversation
+                        channel.isMpim -> res += channel.toGroupConversation()
+
+                        // Channel
+                        else -> res += channel.toSlackChannel()
+                    }
+                }
+
+                // Add the single conversations obtained asynchronously earlier
+                res += deferredSlackApiUsersInfoResponse.map {
+                    val (id, slackApiUserResponse) = it.await()
+                    slackApiUserResponse.user.toSingleConversation(id)
+                }
+
             } while (!slackApiConversationsListResponse?.responseMetadata?.nextCursor.isNullOrEmpty())
-            res.sortedBy { it.name }
+
+            res.sortedBy { it.sortKey }
         } catch (e: Exception) {
             Log.w(e, "Could not make network call")
             null
@@ -118,11 +154,29 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
     }
 }
 
-private fun SlackApiChannel.toBusiness() = SlackChannel(
-    name = name,
+private fun SlackApiChannel.toSlackChannel() = SlackChannel(
+    id = id,
+    name = name!!,
     topic = topic?.value?.ifEmpty { null },
     purpose = purpose?.value?.ifEmpty { null },
 )
+
+private fun SlackApiChannel.toGroupConversation() = SlackGroupConversation(
+    id = id,
+    description = purpose!!.value!!,
+)
+
+private fun SlackApiUser.toSingleConversation(id: String) = SlackSingleConversation(
+    id = id,
+    description = realName,
+)
+
+private val SlackChannelOrConversation.sortKey: String
+    get() = when (this) {
+        is SlackChannel -> "0$name"
+        is SlackGroupConversation -> "1$description"
+        is SlackSingleConversation -> "2$description"
+    }
 
 sealed class OAuthAccess {
     object Fail : OAuthAccess()

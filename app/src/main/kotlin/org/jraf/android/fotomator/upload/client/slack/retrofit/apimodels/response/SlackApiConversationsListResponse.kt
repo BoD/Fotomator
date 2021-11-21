@@ -39,7 +39,16 @@ data class SlackApiConversationsListResponse(
 
 @JsonClass(generateAdapter = true)
 data class SlackApiChannel(
-    val name: String,
+    val id: String,
+    val name: String?,
+    val user: String?,
+
+    @Json(name = "is_mpim")
+    val isMpim: Boolean = false,
+
+    @Json(name = "is_user_deleted")
+    val isUserDeleted: Boolean = false,
+
     val topic: SlackApiChannelTopicOrPurpose?,
     val purpose: SlackApiChannelTopicOrPurpose?,
 )
