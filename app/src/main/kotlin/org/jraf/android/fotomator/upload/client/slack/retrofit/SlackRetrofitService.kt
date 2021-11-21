@@ -28,6 +28,7 @@ import okhttp3.MultipartBody
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiFileUploadResponse
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiOauthAccessResponse
+import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiUsersInfoResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -48,6 +49,9 @@ interface SlackRetrofitService {
         clientSecret: String,
     ): SlackApiOauthAccessResponse
 
+    /**
+     * https://api.slack.com/methods/files.upload
+     */
     @Multipart
     @POST("files.upload")
     suspend fun filesUpload(
@@ -55,12 +59,15 @@ interface SlackRetrofitService {
         authorization: String,
 
         @Query("channels")
-        channels: String,
+        channelId: String,
 
         @Part
         file: MultipartBody.Part,
     ): SlackApiFileUploadResponse
 
+    /**
+     * See https://api.slack.com/methods/conversations.list
+     */
     @GET("conversations.list")
     suspend fun conversationsList(
         @Header("Authorization")
@@ -73,7 +80,19 @@ interface SlackRetrofitService {
         excludeArchived: Boolean = true,
 
         @Query("types")
-        types: String = "public_channel,private_channel"
+        types: String = "public_channel,private_channel,mpim,im",
     ): SlackApiConversationsListResponse
+
+    /**
+     * See https://api.slack.com/methods/users.info
+     */
+    @GET("users.info")
+    suspend fun usersInfo(
+        @Header("Authorization")
+        authorization: String,
+
+        @Query("user")
+        user: String,
+    ): SlackApiUsersInfoResponse
 
 }

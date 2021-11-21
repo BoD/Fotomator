@@ -135,7 +135,7 @@ class UploadScheduler @Inject constructor(
         val ok = parcelFileDescriptor.use {
             slackClient.uploadFile(
                 fileInputStream = FileInputStream(it.fileDescriptor),
-                channels = appPrefs.slackChannel!!
+                channelId = appPrefs.slackChannelId!!
             )
         }
 

@@ -137,19 +137,20 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
                 finish()
             }
         } else {
-            if (viewModel.slackChannel == null) setupSlackChannel()
+            if (viewModel.slackChannelName == null || viewModel.slackChannelId == null) setupSlackChannel()
         }
     }
 
-    private val pickSlackChannelLauncher = registerForActivityResult(SlackPickChannelActivity.CONTRACT) { pickedChannel ->
+    private val pickSlackChannelLauncher = registerForActivityResult(SlackPickChannelActivity.Contract()) { pickedChannel ->
         Log.d("pickedChannel=$pickedChannel")
         if (pickedChannel == null) {
-            if (viewModel.slackChannel == null) {
+            if (viewModel.slackChannelName == null || viewModel.slackChannelId == null) {
                 Log.d("User didn't pick a Slack channel: finish")
                 finish()
             }
         } else {
-            viewModel.slackChannel = pickedChannel
+            viewModel.slackChannelName = pickedChannel.name
+            viewModel.slackChannelId = pickedChannel.id
         }
     }
 
@@ -196,7 +197,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         Log.d()
         when {
             viewModel.slackAuthToken == null -> setupSlackAuth()
-            viewModel.slackChannel == null -> setupSlackChannel()
+            viewModel.slackChannelName == null || viewModel.slackChannelId == null -> setupSlackChannel()
         }
     }
 

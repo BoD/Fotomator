@@ -4,7 +4,7 @@
     <!-- Main -->
     <string name="main_service_switch_enabled">Fotomator est EN ROUTE</string>
     <string name="main_service_switch_disabled">Fotomator est éteint</string>
-    <string name="main_channel">Partage sur %1$s</string>
+    <string name="main_channel">Partage sur</string>
     <string name="main_automaticallyStopServiceDateTime_notSet">Date de fin non spécifiée</string>
     <string name="main_automaticallyStopServiceDateTime_set">Date de fin: %1$s</string>
 
@@ -39,6 +39,9 @@
     <string name="slack_pick_channel_subtitle">Les photos seront partagées sur le canal sélectionné</string>
     <string name="slack_pick_channel_failed">Impossible de charger la liste des canaux, veuillez ressayer</string>
     <string name="slack_pick_channel_search">Recherche</string>
+    <string name="slack_pick_channel_channels">Cannaux</string>
+    <string name="slack_pick_channel_groupMessaging">Messages de groupe</string>
+    <string name="slack_pick_channel_privateMessaging">Messages privés</string>
 
     <!-- Notifications -->
     <string name="notification_channel_main_name">Canal principal</string>

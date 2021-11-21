@@ -62,6 +62,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +75,7 @@ import org.jraf.android.fotomator.theme.FotomatorTheme
 data class MainLayoutState(
     val isServiceEnabled: Boolean,
     val slackTeamName: String?,
-    val slackChannel: String?,
+    val slackChannelName: String?,
     val automaticallyStopServiceDateTimeFormatted: String,
     val isAutomaticallyStopServiceDialogVisible: Boolean,
 )
@@ -153,7 +157,9 @@ private fun MainContent(
 ) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(
@@ -183,10 +189,18 @@ private fun MainContent(
                 )
             }
 
-            if (state.slackChannel != null) {
+            if (state.slackChannelName != null) {
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onChannelClick, enabled = state.isServiceEnabled) {
-                    Text(stringResource(R.string.main_channel, "${state.slackTeamName} #${state.slackChannel}"), letterSpacing = 0.sp)
+                    Text(
+                        buildAnnotatedString {
+                            append(stringResource(R.string.main_channel) + " ")
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(state.slackTeamName ?: "")
+                            }
+                            append(" / ")
+                            append(state.slackChannelName)
+                        }, letterSpacing = 0.sp)
                 }
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onAutomaticallyStopServiceDateTimeClick, enabled = state.isServiceEnabled) {
@@ -228,7 +242,7 @@ private fun MainLayoutPreview() {
         state = MainLayoutState(
             isServiceEnabled = true,
             slackTeamName = "BoD, inc.",
-            slackChannel = "test",
+            slackChannelName = "test",
             automaticallyStopServiceDateTimeFormatted = "Stop on Oct. 11 at 1:30 PM",
             isAutomaticallyStopServiceDialogVisible = false
         ),
