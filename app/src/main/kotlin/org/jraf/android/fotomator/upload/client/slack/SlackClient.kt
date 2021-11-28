@@ -147,8 +147,18 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
         private const val SLACK_APP_CLIENT_ID = "60118040739.1405861361203"
         private const val SLACK_APP_CLIENT_SECRET = "23e75fe20620320e2236325c41437420"
 
-        const val SLACK_APP_AUTHORIZE_URL =
-            "https://slack.com/oauth/v2/authorize?client_id=$SLACK_APP_CLIENT_ID&scope=&user_scope=files:write,channels:read,groups:read"
+        private val SCOPES = arrayOf(
+            "channels:read",
+            "files:write",
+            "groups:read",
+            "im:read",
+            "mpim:read",
+            "users:read",
+        )
+            .joinToString(",")
+
+        val SLACK_APP_AUTHORIZE_URL =
+            "https://slack.com/oauth/v2/authorize?client_id=$SLACK_APP_CLIENT_ID&scope=&user_scope=$SCOPES"
 
         private const val FILE_NAME = "via Fotomator"
     }

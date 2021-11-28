@@ -130,7 +130,10 @@ private fun SlackPickChannelContent(
     Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
         if (isLoading) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    // TODO Remove this when CircularProgressIndicator exists in Material 3
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         } else {
             state as SlackPickChannelLayoutState.Loaded

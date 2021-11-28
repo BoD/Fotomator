@@ -81,7 +81,10 @@ fun SlackAuthContent(
     Crossfade(isLoading) { isLoading ->
         if (isLoading) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    // TODO Remove this when CircularProgressIndicator exists in Material 3
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         } else {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
