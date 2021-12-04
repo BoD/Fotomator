@@ -24,6 +24,14 @@
  */
 package org.jraf.android.fotomator.app.main
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -58,6 +66,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -68,7 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.theme.FotomatorTheme
 
@@ -148,6 +156,7 @@ fun MainLayout(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun MainContent(
     state: MainLayoutState,
@@ -162,35 +171,21 @@ private fun MainContent(
             .padding(horizontal = 16.dp),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(
-                modifier = Modifier
-                    .clip(androidx.compose.material.MaterialTheme.shapes.small)
-                    .clickable(onClick = onServiceEnabledClick)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    stringResource(if (state.isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.alignByBaseline()
-                )
-                Spacer(Modifier.width(8.dp))
-                Switch(
-                    checked = state.isServiceEnabled,
-                    onCheckedChange = null,
-                    modifier = Modifier.alignByBaseline(),
+            OnOffButton(state, onServiceEnabledClick)
 
-                    // TODO Necessary for now with Material 3 alpha, but should probably work by default
-                    // with later versions
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.primaryContainer,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
+            Spacer(Modifier.height(8.dp))
+            val alpha: Float by animateFloatAsState(if (state.isServiceEnabled) 1F else 0F)
+
+            Blink(overallAlpha = alpha) {
+                Text(
+                    stringResource(R.string.main_monitoringPhotos),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
 
             if (state.slackChannelName != null) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
                 OutlinedButton(onClick = onChannelClick, enabled = state.isServiceEnabled) {
                     Text(
                         buildAnnotatedString {
@@ -200,14 +195,44 @@ private fun MainContent(
                             }
                             append(" / ")
                             append(state.slackChannelName)
-                        }, letterSpacing = 0.sp)
+                        })
                 }
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onAutomaticallyStopServiceDateTimeClick, enabled = state.isServiceEnabled) {
-                    Text(state.automaticallyStopServiceDateTimeFormatted, letterSpacing = 0.sp)
+                    Text(state.automaticallyStopServiceDateTimeFormatted)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun OnOffButton(state: MainLayoutState, onServiceEnabledClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(androidx.compose.material.MaterialTheme.shapes.small)
+            .clickable(onClick = onServiceEnabledClick)
+            .padding(16.dp)
+    ) {
+        Text(
+            stringResource(if (state.isServiceEnabled) R.string.main_service_switch_enabled else R.string.main_service_switch_disabled),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.alignByBaseline()
+        )
+        Spacer(Modifier.width(8.dp))
+        Switch(
+            checked = state.isServiceEnabled,
+            onCheckedChange = null,
+            modifier = Modifier.alignByBaseline(),
+
+            // TODO Necessary for now with Material 3 alpha, but should probably work by default
+            // with later versions
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.primaryContainer,
+                uncheckedTrackColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        )
     }
 }
 
@@ -234,6 +259,24 @@ private fun AutomaticallyStopServiceDialog(
         }
     }
 )
+
+@Composable
+private fun Blink(overallAlpha: Float = 1F, content: @Composable () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1F,
+        targetValue = .33F,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Box(modifier = Modifier.alpha(overallAlpha * alpha)) {
+        content()
+    }
+}
 
 @Preview
 @Composable

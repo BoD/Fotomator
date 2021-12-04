@@ -28,6 +28,8 @@
     <string name="main_automaticallyStopServiceDialog_negative">Manually</string>
     <string name="main_automaticallyStopServiceDialog_dateIsInThePast">The selected date/time has already passed! Please try again.</string>
 
+    <string name="main_monitoringPhotos">Monitoring photos…</string>
+
     <!-- Slack auth -->
     <string name="slack_auth_title">Connection to Slack</string>
     <string name="slack_auth_failed">Connection to Slack has failed, please try again</string>
