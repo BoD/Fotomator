@@ -48,6 +48,9 @@ class Application : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
                 override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
+                    // Do not touch external activities (e.g. About screen)
+                    if (!activity::class.java.name.startsWith("org.jraf.android.fotomator")) return
+
                     val isNightMode = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
                     activity.window.statusBarColor =
                         activity.getColor(if (isNightMode) android.R.color.system_accent1_700 else android.R.color.system_accent1_100)
