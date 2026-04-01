@@ -30,8 +30,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.jraf.android.fotomator.prefs.AppPrefs
-import org.jraf.android.util.log.Log
-import org.jraf.android.util.string.StringUtil
+import org.jraf.android.fotomator.util.logd
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,7 +39,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     lateinit var appPrefs: AppPrefs
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("intent=${StringUtil.toString(intent)}")
+        logd("onReceive")
         startPhotoMonitoringService(context)
     }
 

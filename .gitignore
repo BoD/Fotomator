@@ -10,5 +10,5 @@ etc/apk
 etc/proguard
 
 .idea/*
-!.idea/codeStyles/
-!.idea/copyright/
+!.idea/codeStyles
+!.idea/copyright

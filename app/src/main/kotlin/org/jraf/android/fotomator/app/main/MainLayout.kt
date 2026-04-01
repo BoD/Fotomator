@@ -24,7 +24,6 @@
  */
 package org.jraf.android.fotomator.app.main
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -42,20 +41,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Switch
-import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors
@@ -78,6 +76,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jraf.android.fotomator.R
+import org.jraf.android.fotomator.app.main.MainLayoutState.DialogType
 import org.jraf.android.fotomator.theme.FotomatorTheme
 
 data class MainLayoutState(
@@ -85,8 +84,15 @@ data class MainLayoutState(
     val slackTeamName: String?,
     val slackChannelName: String?,
     val automaticallyStopServiceDateTimeFormatted: String,
-    val isAutomaticallyStopServiceDialogVisible: Boolean,
-)
+    val shownDialog: DialogType,
+) {
+    enum class DialogType {
+        NONE,
+        AUTOMATICALLY_STOP_SERVICE_CHOICE,
+        AUTOMATICALLY_STOP_SERVICE_DATE,
+        AUTOMATICALLY_STOP_SERVICE_TIME,
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,8 +103,8 @@ fun MainLayout(
     onAboutClick: () -> Unit,
     onChannelClick: () -> Unit,
     onAutomaticallyStopServiceDateTimeClick: () -> Unit,
-    onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit,
-    onAutomaticallyStopServiceDialogManuallyClick: () -> Unit,
+    onAutomaticallyStopServiceChoiceDialogSetDateTimeClick: () -> Unit,
+    onAutomaticallyStopServiceChoiceDialogManuallyClick: () -> Unit,
 ) {
     FotomatorTheme {
         Scaffold(
@@ -124,41 +130,50 @@ fun MainLayout(
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false }
                         ) {
-                            DropdownMenuItem(onClick = {
-                                menuExpanded = false
-                                onDisconnectSlackClick()
-                            }) {
-                                Text(stringResource(R.string.main_menu_disconnectSlack))
-                            }
-                            DropdownMenuItem(onClick = {
-                                menuExpanded = false
-                                onAboutClick()
-                            }) {
-                                Text(stringResource(R.string.main_menu_about))
-                            }
+                            DropdownMenuItem(
+                                text = {
+                                    Text(stringResource(R.string.main_menu_disconnectSlack))
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDisconnectSlackClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(stringResource(R.string.main_menu_about))
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onAboutClick()
+                                },
+                            )
                         }
                     },
                 )
             },
-            content = {
+            content = { paddingValues ->
                 MainContent(
-                    state,
-                    onServiceEnabledClick,
-                    onChannelClick,
-                    onAutomaticallyStopServiceDateTimeClick,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    state = state,
+                    onServiceEnabledClick = onServiceEnabledClick,
+                    onChannelClick = onChannelClick,
+                    onAutomaticallyStopServiceDateTimeClick = onAutomaticallyStopServiceDateTimeClick,
                 )
 
-                if (state.isAutomaticallyStopServiceDialogVisible) {
-                    AutomaticallyStopServiceDialog(onAutomaticallyStopServiceDialogManuallyClick, onAutomaticallyStopServiceDialogSetDateTimeClick)
+                if (state.shownDialog == DialogType.AUTOMATICALLY_STOP_SERVICE_CHOICE) {
+                    AutomaticallyStopServiceChoiceDialog(onAutomaticallyStopServiceChoiceDialogManuallyClick, onAutomaticallyStopServiceChoiceDialogSetDateTimeClick)
                 }
             }
         )
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun MainContent(
+    modifier: Modifier,
     state: MainLayoutState,
     onServiceEnabledClick: () -> Unit,
     onChannelClick: () -> Unit,
@@ -166,15 +181,14 @@ private fun MainContent(
 ) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
             .padding(horizontal = 16.dp),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             OnOffButton(state, onServiceEnabledClick)
 
             Spacer(Modifier.height(8.dp))
-            val alpha: Float by animateFloatAsState(if (state.isServiceEnabled) 1F else 0F)
+            val alpha: Float by animateFloatAsState(if (state.isServiceEnabled) 1F else 0F, label = "alpha")
 
             Blink(overallAlpha = alpha) {
                 Text(
@@ -210,7 +224,7 @@ private fun MainContent(
 private fun OnOffButton(state: MainLayoutState, onServiceEnabledClick: () -> Unit) {
     Row(
         modifier = Modifier
-            .clip(androidx.compose.material.MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.small)
             .clickable(onClick = onServiceEnabledClick)
             .padding(16.dp)
     ) {
@@ -225,19 +239,19 @@ private fun OnOffButton(state: MainLayoutState, onServiceEnabledClick: () -> Uni
             onCheckedChange = null,
             modifier = Modifier.alignByBaseline(),
 
-            // TODO Necessary for now with Material 3 alpha, but should probably work by default
-            // with later versions
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = MaterialTheme.colorScheme.primaryContainer,
-                uncheckedTrackColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+//            // TODO Necessary for now with Material 3 alpha, but should probably work by default
+//            // with later versions
+//            colors = SwitchDefaults.colors(
+//                checkedThumbColor = MaterialTheme.colorScheme.primary,
+//                uncheckedThumbColor = MaterialTheme.colorScheme.primaryContainer,
+//                uncheckedTrackColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//            )
         )
     }
 }
 
 @Composable
-private fun AutomaticallyStopServiceDialog(
+private fun AutomaticallyStopServiceChoiceDialog(
     onAutomaticallyStopServiceDialogManuallyClick: () -> Unit,
     onAutomaticallyStopServiceDialogSetDateTimeClick: () -> Unit,
 ) = AlertDialog(
@@ -262,7 +276,7 @@ private fun AutomaticallyStopServiceDialog(
 
 @Composable
 private fun Blink(overallAlpha: Float = 1F, content: @Composable () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition("blink")
 
     val alpha by infiniteTransition.animateFloat(
         initialValue = 1F,
@@ -270,7 +284,8 @@ private fun Blink(overallAlpha: Float = 1F, content: @Composable () -> Unit) {
         animationSpec = infiniteRepeatable(
             animation = tween(500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        )
+        ),
+        label = "blinkAlpha"
     )
 
     Box(modifier = Modifier.alpha(overallAlpha * alpha)) {
@@ -287,18 +302,18 @@ private fun MainLayoutPreview() {
             slackTeamName = "BoD, inc.",
             slackChannelName = "test",
             automaticallyStopServiceDateTimeFormatted = "Stop on Oct. 11 at 1:30 PM",
-            isAutomaticallyStopServiceDialogVisible = false
+            shownDialog = DialogType.NONE,
         ),
         onServiceEnabledClick = {},
         onDisconnectSlackClick = {},
         onAboutClick = {},
         onChannelClick = {},
         onAutomaticallyStopServiceDateTimeClick = {},
-        onAutomaticallyStopServiceDialogSetDateTimeClick = {},
-        onAutomaticallyStopServiceDialogManuallyClick = {},
+        onAutomaticallyStopServiceChoiceDialogSetDateTimeClick = {},
+        onAutomaticallyStopServiceChoiceDialogManuallyClick = {},
     )
 }
 
 @Preview
 @Composable
-private fun AutomaticallyStopServiceDialogPreview() = AutomaticallyStopServiceDialog({}, {})
+private fun AutomaticallyStopServiceDialogPreview() = AutomaticallyStopServiceChoiceDialog({}, {})

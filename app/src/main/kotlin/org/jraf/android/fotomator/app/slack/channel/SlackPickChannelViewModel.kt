@@ -25,17 +25,17 @@
 package org.jraf.android.fotomator.app.slack.channel
 
 import androidx.annotation.StringRes
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.upload.client.slack.SlackChannel
 import org.jraf.android.fotomator.upload.client.slack.SlackChannelOrConversation
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
 import org.jraf.android.fotomator.upload.client.slack.SlackConversation
-import org.jraf.android.fotomator.util.fireAndForget
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,12 +43,12 @@ class SlackPickChannelViewModel @Inject constructor(
     private val slackClient: SlackClient,
 ) : ViewModel() {
 
-    val toast = MutableLiveData<Int?>()
-    val finishWithError = MutableLiveData<Unit>()
+    val toast = MutableSharedFlow<Int>()
+    val finishWithError = MutableSharedFlow<Unit>()
 
     private var channelList: List<SlackChannelOrConversation>? = null
 
-    val layoutState = MutableLiveData<SlackPickChannelLayoutState>(SlackPickChannelLayoutState.Loading)
+    val layoutState = MutableStateFlow<SlackPickChannelLayoutState>(SlackPickChannelLayoutState.Loading)
 
     init {
         viewModelScope.launch {
@@ -56,7 +56,7 @@ class SlackPickChannelViewModel @Inject constructor(
             this@SlackPickChannelViewModel.channelList = channelList
             if (channelList == null) {
                 showToast(R.string.slack_pick_channel_failed)
-                finishWithError.value = Unit
+                finishWithError.emit(Unit)
             } else {
                 layoutState.value = SlackPickChannelLayoutState.Loaded(channelList, null)
             }
@@ -64,7 +64,7 @@ class SlackPickChannelViewModel @Inject constructor(
     }
 
     private fun showToast(@StringRes resId: Int) {
-        toast.fireAndForget(resId)
+        toast.tryEmit(resId)
     }
 
     fun updateSearchQuery(query: String) {

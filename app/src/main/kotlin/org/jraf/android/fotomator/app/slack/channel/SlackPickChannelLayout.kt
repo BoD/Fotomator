@@ -41,21 +41,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ListItem
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults.smallTopAppBarColors
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,13 +80,13 @@ fun SlackPickChannelLayout(
     FotomatorTheme {
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     navigationIcon = {
                         IconButton(
                             onClick = onBackClick
                         ) {
                             Icon(
-                                Icons.Default.ArrowBack,
+                                Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = null
                             )
                         }
@@ -107,14 +105,17 @@ fun SlackPickChannelLayout(
 
                         }
                     },
-                    colors = smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+//                    colors = smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 )
             },
-            content = {
+            content = { paddingValues ->
                 SlackPickChannelContent(
-                    state,
-                    onChannelClick,
-                    onSearchQueryChange
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    state = state,
+                    onChannelClick = onChannelClick,
+                    onSearchQueryChange = onSearchQueryChange
                 )
             }
         )
@@ -123,17 +124,19 @@ fun SlackPickChannelLayout(
 
 @Composable
 private fun SlackPickChannelContent(
+    modifier: Modifier,
     state: SlackPickChannelLayoutState,
     onChannelClick: (SlackChannelOrConversation) -> Unit,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    Crossfade(state is SlackPickChannelLayoutState.Loading) { isLoading ->
+    Crossfade(
+        modifier = modifier,
+        targetState = state is SlackPickChannelLayoutState.Loading,
+        label = "crossFade",
+    ) { isLoading ->
         if (isLoading) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator(
-                    // TODO Remove this when CircularProgressIndicator exists in Material 3
-                    color = MaterialTheme.colorScheme.primary
-                )
+                CircularProgressIndicator()
             }
         } else {
             state as SlackPickChannelLayoutState.Loaded
@@ -225,7 +228,8 @@ private fun ChannelList(
 
 @Composable
 private fun Separator(title: String) {
-    Text(title,
+    Text(
+        title,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.inverseOnSurface,
         modifier = Modifier
@@ -236,20 +240,19 @@ private fun Separator(title: String) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterialApi::class)
 private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
-    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    // TODO: Keeping Text here for now, with a hardcoded color,
     //  so the styles inherited from ListItem work correctly
-    text = {
-        androidx.compose.material.Text(
+    headlineContent = {
+        Text(
             "# ${channel.name}",
             color = MaterialTheme.colorScheme.onSurface
         )
     },
-    secondaryText = when {
+    supportingContent = when {
         channel.topic != null -> {
             {
-                androidx.compose.material.Text(
+                Text(
                     channel.topic,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
@@ -260,7 +263,7 @@ private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
 
         channel.purpose != null -> {
             {
-                androidx.compose.material.Text(
+                Text(
                     channel.purpose,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
@@ -275,12 +278,11 @@ private fun ChannelRow(channel: SlackChannel, onClick: () -> Unit) = ListItem(
 )
 
 @Composable
-@OptIn(ExperimentalMaterialApi::class)
 private fun SingleConversationRow(conversation: SlackSingleConversation, onClick: () -> Unit) = ListItem(
-    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    // TODO: Keeping Text here for now, with a hardcoded color,
     //  so the styles inherited from ListItem work correctly
-    text = {
-        androidx.compose.material.Text(
+    headlineContent = {
+        Text(
             conversation.description,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -290,18 +292,17 @@ private fun SingleConversationRow(conversation: SlackSingleConversation, onClick
 )
 
 @Composable
-@OptIn(ExperimentalMaterialApi::class)
 private fun GroupConversationRow(conversation: SlackGroupConversation, onClick: () -> Unit) = ListItem(
-    // TODO: Keeping androidx.compose.material.Text here for now, with a hardcoded color,
+    // TODO: Keeping Text here for now, with a hardcoded color,
     //  so the styles inherited from ListItem work correctly
-    text = {
-        androidx.compose.material.Text(
+    headlineContent = {
+        Text(
             stringResource(R.string.slack_pick_channel_groupMessaging),
             color = MaterialTheme.colorScheme.onSurface
         )
     },
-    secondaryText = {
-        androidx.compose.material.Text(
+    supportingContent = {
+        Text(
             conversation.description,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
@@ -347,7 +348,7 @@ private fun SlackPickChannelLayoutLoadingPreview() {
 }
 
 sealed class SlackPickChannelLayoutState {
-    object Loading : SlackPickChannelLayoutState()
+    data object Loading : SlackPickChannelLayoutState()
     data class Loaded(
         val channelList: List<SlackChannelOrConversation>,
         val searchQuery: String?,

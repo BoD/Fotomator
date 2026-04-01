@@ -25,7 +25,6 @@
 package org.jraf.android.fotomator.prefs
 
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jraf.android.kprefs.Key
@@ -38,8 +37,6 @@ class AppPrefs @Inject constructor(@ApplicationContext context: Context) {
     private val prefs = Prefs(context)
 
     var isServiceEnabled: Boolean by prefs.Boolean(false, KEY_IS_SERVICE_ENABLED)
-    val isServiceEnabledLiveData: MutableLiveData<Boolean> by prefs.BooleanLiveData(false, KEY_IS_SERVICE_ENABLED)
-    val automaticallyStopServiceDateTimeLiveData: MutableLiveData<Long?> by prefs.LongLiveData(KEY_AUTOMATICALLY_STOP_SERVICE_DATE_TIME)
 
     var slackAuthToken: String? by prefs.String()
 

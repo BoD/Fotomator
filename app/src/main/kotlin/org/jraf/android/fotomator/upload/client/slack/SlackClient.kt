@@ -38,7 +38,7 @@ import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.respons
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiConversationsListResponse
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiUser
 import org.jraf.android.fotomator.upload.client.slack.retrofit.apimodels.response.SlackApiUsersInfoResponse
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.logw
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.InputStream
@@ -67,7 +67,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
                 teamName = oauthAccessResponse.team!!.name
             )
         } catch (e: Exception) {
-            Log.w(e, "Could not make network call")
+            logw(e, "Could not make network call")
             return OAuthAccess.Fail
         }
     }
@@ -87,7 +87,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
             )
             fileUploadResponse.ok
         } catch (e: Exception) {
-            Log.w(e, "Could not make network call")
+            logw(e, "Could not make network call")
             false
         }
     }
@@ -135,7 +135,7 @@ class SlackClient(private val authTokenProvider: AuthTokenProvider) {
 
             res.sortedBy { it.sortKey }
         } catch (e: Exception) {
-            Log.w(e, "Could not make network call")
+            logw(e, "Could not make network call")
             null
         }
     }
@@ -189,6 +189,6 @@ private val SlackChannelOrConversation.sortKey: String
     }
 
 sealed class OAuthAccess {
-    object Fail : OAuthAccess()
+    data object Fail : OAuthAccess()
     data class Success(val accessToken: String, val teamName: String) : OAuthAccess()
 }

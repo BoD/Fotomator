@@ -27,8 +27,6 @@ package org.jraf.android.fotomator.theme
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -38,29 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import org.jraf.android.fotomator.R
-
-// Material 2
-
-private val LightColors
-    @Composable
-    get() = lightColors(
-        primary = colorResource(R.color.md_theme_light_primary),
-        primaryVariant = colorResource(R.color.md_theme_light_primary),
-        secondary = colorResource(R.color.md_theme_light_secondary),
-        secondaryVariant = colorResource(R.color.md_theme_light_secondary),
-    )
-
-private val DarkColors
-    @Composable
-    get() = darkColors(
-        primary = colorResource(R.color.md_theme_dark_primary),
-        primaryVariant = colorResource(R.color.md_theme_dark_primary),
-        secondary = colorResource(R.color.md_theme_dark_secondary),
-        secondaryVariant = colorResource(R.color.md_theme_dark_secondary),
-    )
-
-
-// Material 3
 
 private val LightColorScheme
     @Composable
@@ -135,14 +110,8 @@ fun FotomatorTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-
-    // TODO: For now, use both Material 2 and Material 3 themes, since not all components exist in Material 3
-    androidx.compose.material.MaterialTheme(
-        colors = if (darkTheme) DarkColors else LightColors,
-    ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content
+    )
 }

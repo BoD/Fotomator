@@ -28,18 +28,19 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.slack.OAuthAccess
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
-import org.jraf.android.fotomator.util.fireAndForget
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.logd
+import org.jraf.android.fotomator.util.logw
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,12 +50,12 @@ class SlackAuthViewModel @Inject constructor(
     private val slackClient: SlackClient,
 ) : ViewModel() {
 
-    val isLoading = MutableLiveData(false)
-    val toast = MutableLiveData<Int?>()
-    val finishWithSuccess = MutableLiveData<Unit>()
+    val isLoading = MutableStateFlow(false)
+    val toast = MutableSharedFlow<Int>()
+    val finishWithSuccess = MutableSharedFlow<Unit>()
 
     fun startAuthentication() {
-        Log.d()
+        logd("startAuthentication")
         setLoading(true)
         prefs.slackAuthToken = null
         application.startActivity(
@@ -64,37 +65,38 @@ class SlackAuthViewModel @Inject constructor(
     }
 
     fun handleRedirectUri(redirectUri: Uri) {
-        Log.d("redirectUri=$redirectUri")
+        logd("redirectUri=$redirectUri")
         val error = redirectUri.getQueryParameter(QUERY_PARAM_ERROR)
         val code = redirectUri.getQueryParameter(QUERY_PARAM_CODE)
         when {
             error != null -> {
-                Log.w("Authentication error'd")
+                logw("Authentication error'd")
                 showToast(R.string.slack_auth_failed)
                 setLoading(false)
             }
 
             code == null -> {
-                Log.w("Code not present in redirect uri")
+                logw("Code not present in redirect uri")
                 showToast(R.string.slack_auth_failed)
                 setLoading(false)
             }
 
             else -> {
-                Log.d("Calling oauth access API")
+                logd("Calling oauth access API")
                 setLoading(true)
-                GlobalScope.launch(Dispatchers.Main) {
+                viewModelScope.launch(Dispatchers.Main) {
                     when (val oAuthAccess = slackClient.oauthAccess(code)) {
                         OAuthAccess.Fail -> {
-                            Log.w("No auth token in response")
+                            logw("No auth token in response")
                             showToast(R.string.slack_auth_failed)
                             setLoading(false)
                         }
+
                         is OAuthAccess.Success -> {
                             prefs.slackAuthToken = oAuthAccess.accessToken
                             prefs.slackTeamName = oAuthAccess.teamName
                             showToast(R.string.slack_auth_success)
-                            finishWithSuccess.value = Unit
+                            finishWithSuccess.tryEmit(Unit)
                         }
                     }
                 }
@@ -107,7 +109,7 @@ class SlackAuthViewModel @Inject constructor(
     }
 
     private fun showToast(@StringRes resId: Int) {
-        toast.fireAndForget(resId)
+        toast.tryEmit(resId)
     }
 
     companion object {

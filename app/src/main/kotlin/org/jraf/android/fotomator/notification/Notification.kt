@@ -211,7 +211,7 @@ private fun createBigPictureStyle(
 ): NotificationCompat.BigPictureStyle {
     return NotificationCompat.BigPictureStyle()
         .bigPicture(photoBitmap)
-        .bigLargeIcon(null)
+//        .bigLargeIcon(null)
         .setBigContentTitle(title)
         .setSummaryText(text)
 }

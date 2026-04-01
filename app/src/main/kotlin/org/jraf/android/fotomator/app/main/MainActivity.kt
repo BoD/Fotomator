@@ -27,9 +27,7 @@ package org.jraf.android.fotomator.app.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -40,40 +38,39 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import dagger.hilt.android.AndroidEntryPoint
-import org.jraf.android.fotomator.BuildConfig
+import kotlinx.coroutines.launch
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.app.slack.auth.SlackAuthActivity
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity
 import org.jraf.android.fotomator.monitoring.PhotoMonitoringService
-import org.jraf.android.fotomator.util.observeNonNull
-import org.jraf.android.util.about.AboutActivityIntentBuilder
-import org.jraf.android.util.dialog.AlertDialogFragment
-import org.jraf.android.util.dialog.AlertDialogListener
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.logd
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), AlertDialogListener {
+class MainActivity : AppCompatActivity()/*, AlertDialogListener */ {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val layoutState by viewModel.layoutState.collectAsState(initial = viewModel.getInitialState())
+            val layoutState by viewModel.layoutState.collectAsState()
             MainLayout(
                 state = layoutState,
                 onServiceEnabledClick = viewModel::onServiceEnabledSwitchClick,
                 onAboutClick = ::onAboutClick,
                 onDisconnectSlackClick = viewModel::onDisconnectSlackClick,
-                onChannelClick = viewModel::onChannelClick,
+                onChannelClick = ::setupSlackChannel,
                 onAutomaticallyStopServiceDateTimeClick = viewModel::onAutomaticallyStopServiceDateTimeClick,
-                onAutomaticallyStopServiceDialogSetDateTimeClick = viewModel::onAutomaticallyStopServiceDialogSetDateTimeClick,
-                onAutomaticallyStopServiceDialogManuallyClick = viewModel::onAutomaticallyStopServiceDialogManuallyClick,
+                onAutomaticallyStopServiceChoiceDialogSetDateTimeClick = viewModel::onAutomaticallyStopServiceChoiceDialogSetDateTimeClick,
+                onAutomaticallyStopServiceChoiceDialogManuallyClick = viewModel::onAutomaticallyStopServiceChoiceDialogManuallyClick,
             )
         }
 
@@ -84,44 +81,50 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         viewModel.handleConfigureIntent(intent)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent != null) viewModel.handleConfigureIntent(intent)
+        viewModel.handleConfigureIntent(intent)
     }
 
     private fun observeViewModel() {
-        viewModel.isServiceEnabledLiveData.observe(this) { serviceEnabled ->
-            Log.d("serviceEnabled=$serviceEnabled")
-            if (serviceEnabled) {
-                startPhotoMonitoringService()
-            } else {
-                stopPhotoMonitoringService()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.isServiceEnabled
+                        .collect { serviceEnabled ->
+                            logd("serviceEnabled=$serviceEnabled")
+                            if (serviceEnabled) {
+                                startPhotoMonitoringService()
+                            } else {
+                                stopPhotoMonitoringService()
+                            }
+                        }
+                }
+                launch {
+                    viewModel.automaticallyStopServiceDateIsInThePast
+                        .collect {
+                            Toast.makeText(this@MainActivity, R.string.main_automaticallyStopServiceDialog_dateIsInThePast, Toast.LENGTH_LONG).show()
+                        }
+                }
+                launch {
+                    viewModel.automaticallyStopServiceDateIsInThePast
+                        .collect {
+                            Toast.makeText(this@MainActivity, R.string.main_automaticallyStopServiceDialog_dateIsInThePast, Toast.LENGTH_LONG).show()
+                        }
+
+                }
+                launch {
+                    viewModel.setupSlackAuth
+                        .collect {
+                            setupSlackAuth()
+                        }
+                }
             }
-        }
-
-        viewModel.pickSlackChannel.observeNonNull(this) {
-            setupSlackChannel()
-        }
-
-        viewModel.showAutomaticallyStopServiceDatePicker.observeNonNull(this) {
-            showAutomaticallyStopServiceDatePicker()
-        }
-
-        viewModel.showAutomaticallyStopServiceTimePicker.observeNonNull(this) {
-            showAutomaticallyStopServiceTimePicker()
-        }
-
-        viewModel.automaticallyStopServiceDateIsInThePast.observeNonNull(this) {
-            Toast.makeText(this, R.string.main_automaticallyStopServiceDialog_dateIsInThePast, Toast.LENGTH_LONG).show()
-        }
-
-        viewModel.setupSlackAuth.observeNonNull(this) {
-            setupSlackAuth()
         }
     }
 
     private val requestPermissionLauncher = registerForActivityResult(RequestPermission()) { isGranted ->
-        Log.d("isGranted=$isGranted")
+        logd("isGranted=$isGranted")
         if (isGranted) {
             onPermissionsGranted()
         } else {
@@ -130,10 +133,10 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private val setupSlackAuthLauncher = registerForActivityResult(SlackAuthActivity.CONTRACT) { result ->
-        Log.d("result=$result")
+        logd("result=$result")
         if (!result) {
             if (viewModel.slackAuthToken == null) {
-                Log.d("User refuses to setup Slack auth: finish")
+                logd("User refuses to setup Slack auth: finish")
                 finish()
             }
         } else {
@@ -142,10 +145,10 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private val pickSlackChannelLauncher = registerForActivityResult(SlackPickChannelActivity.Contract()) { pickedChannel ->
-        Log.d("pickedChannel=$pickedChannel")
+        logd("pickedChannel=$pickedChannel")
         if (pickedChannel == null) {
             if (viewModel.slackChannelName == null || viewModel.slackChannelId == null) {
-                Log.d("User didn't pick a Slack channel: finish")
+                logd("User didn't pick a Slack channel: finish")
                 finish()
             }
         } else {
@@ -155,7 +158,7 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
     }
 
     private fun checkPermissions() {
-        Log.d()
+        logd("checkPermissions")
         if (ContextCompat.checkSelfPermission(this, PERMISSION_TO_REQUEST) != PackageManager.PERMISSION_GRANTED) {
             if (shouldShowRequestPermissionRationale(PERMISSION_TO_REQUEST)) {
                 showPermissionRationaleUi()
@@ -173,28 +176,28 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
 
     private fun onPermissionsNotGranted() {
         val shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale(PERMISSION_TO_REQUEST)
-        Log.d("shouldShowRequestPermissionRationale=$shouldShowRequestPermissionRationale")
+        logd("shouldShowRequestPermissionRationale=$shouldShowRequestPermissionRationale")
         if (shouldShowRequestPermissionRationale) {
             checkPermissions()
         } else {
-            AlertDialogFragment.newInstance(DIALOG_NO_PERMISSION)
-                .message(R.string.main_permissionNotGrantedDialog_message)
-                .positiveButton(R.string.main_permissionNotGrantedDialog_positive)
-                .negativeButton(R.string.main_permissionNotGrantedDialog_negative)
-                .show(this)
+//            AlertDialogFragment.newInstance(DIALOG_NO_PERMISSION)
+//                .message(R.string.main_permissionNotGrantedDialog_message)
+//                .positiveButton(R.string.main_permissionNotGrantedDialog_positive)
+//                .negativeButton(R.string.main_permissionNotGrantedDialog_negative)
+//                .show(this)
         }
     }
 
     private fun showPermissionRationaleUi() {
-        Log.d()
-        AlertDialogFragment.newInstance(DIALOG_SHOW_RATIONALE)
-            .message(R.string.main_permissionShowRationaleDialog_message)
-            .positiveButton(R.string.main_permissionShowRationaleDialog_positive)
-            .show(this)
+        logd("showPermissionRationaleUi")
+//        AlertDialogFragment.newInstance(DIALOG_SHOW_RATIONALE)
+//            .message(R.string.main_permissionShowRationaleDialog_message)
+//            .positiveButton(R.string.main_permissionShowRationaleDialog_positive)
+//            .show(this)
     }
 
     private fun onPermissionsGranted() {
-        Log.d()
+        logd("onPermissionsGranted")
         when {
             viewModel.slackAuthToken == null -> setupSlackAuth()
             viewModel.slackChannelName == null || viewModel.slackChannelId == null -> setupSlackChannel()
@@ -225,45 +228,45 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
         }
     }
 
-    override fun onDialogClickPositive(tag: Int, payload: Any?) {
-        when (tag) {
-            DIALOG_SHOW_RATIONALE -> requestPermission()
-            DIALOG_NO_PERMISSION -> {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                val uri: Uri = Uri.fromParts("package", packageName, null)
-                intent.data = uri
-                startActivity(intent)
-                finish()
-            }
-        }
-    }
+//    override fun onDialogClickPositive(tag: Int, payload: Any?) {
+//        when (tag) {
+//            DIALOG_SHOW_RATIONALE -> requestPermission()
+//            DIALOG_NO_PERMISSION -> {
+//                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+//                val uri: Uri = Uri.fromParts("package", packageName, null)
+//                intent.data = uri
+//                startActivity(intent)
+//                finish()
+//            }
+//        }
+//    }
 
-    override fun onDialogClickNegative(tag: Int, payload: Any?) {
-        when (tag) {
-            DIALOG_NO_PERMISSION -> finish()
-        }
-    }
+//    override fun onDialogClickNegative(tag: Int, payload: Any?) {
+//        when (tag) {
+//            DIALOG_NO_PERMISSION -> finish()
+//        }
+//    }
 
-    override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
+//    override fun onDialogClickListItem(tag: Int, index: Int, payload: Any?) {}
 
     private fun onAboutClick() {
-        startActivity(
-            AboutActivityIntentBuilder()
-                .setAppName(getString(R.string.app_name))
-                .setBuildDate(BuildConfig.BUILD_DATE)
-                .setGitSha1(BuildConfig.GIT_SHA1)
-                .setAuthorCopyright(getString(R.string.about_authorCopyright))
-                .setLicense(getString(R.string.about_License))
-                .setShareTextSubject(getString(R.string.about_shareText_subject))
-                .setShareTextBody(getString(R.string.about_shareText_body))
-                .setBackgroundResId(R.drawable.about_bg)
-                .setShowOpenSourceLicencesLink(true)
-                .addLink(getString(R.string.about_email_uri), getString(R.string.about_email_text))
-                .addLink(getString(R.string.about_web_uri), getString(R.string.about_web_text))
-                .addLink(getString(R.string.about_sources_uri), getString(R.string.about_sources_text))
-                .setIsLightIcons(true)
-                .build(this)
-        )
+//        startActivity(
+//            AboutActivityIntentBuilder()
+//                .setAppName(getString(R.string.app_name))
+//                .setBuildDate(BuildConfig.BUILD_DATE)
+//                .setGitSha1(BuildConfig.GIT_SHA1)
+//                .setAuthorCopyright(getString(R.string.about_authorCopyright))
+//                .setLicense(getString(R.string.about_License))
+//                .setShareTextSubject(getString(R.string.about_shareText_subject))
+//                .setShareTextBody(getString(R.string.about_shareText_body))
+//                .setBackgroundResId(R.drawable.about_bg)
+//                .setShowOpenSourceLicencesLink(true)
+//                .addLink(getString(R.string.about_email_uri), getString(R.string.about_email_text))
+//                .addLink(getString(R.string.about_web_uri), getString(R.string.about_web_text))
+//                .addLink(getString(R.string.about_sources_uri), getString(R.string.about_sources_text))
+//                .setIsLightIcons(true)
+//                .build(this)
+//        )
     }
 
     //--------------------------------------------------------------------------
@@ -277,15 +280,15 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             .setCalendarConstraints(CalendarConstraints.Builder().setStart(System.currentTimeMillis()).build())
             .build()
         datePicker.addOnNegativeButtonClickListener {
-            Log.d()
+            logd("addOnNegativeButtonClickListener")
             viewModel.onAutomaticallyStopServiceDatePicked(null)
         }
         datePicker.addOnCancelListener {
-            Log.d()
+            logd("addOnCancelListener")
             viewModel.onAutomaticallyStopServiceDatePicked(null)
         }
         datePicker.addOnPositiveButtonClickListener { timestamp ->
-            Log.d("timestamp=$timestamp}")
+            logd("timestamp=$timestamp}")
             viewModel.onAutomaticallyStopServiceDatePicked(timestamp)
         }
         datePicker.show(supportFragmentManager, DIALOG_AUTOMATICALLY_STOP_SERVICE_DATE)
@@ -298,15 +301,15 @@ class MainActivity : AppCompatActivity(), AlertDialogListener {
             .setTimeFormat(if (DateFormat.is24HourFormat(this)) TimeFormat.CLOCK_24H else TimeFormat.CLOCK_12H)
             .build()
         timePicker.addOnNegativeButtonClickListener {
-            Log.d()
+            logd("addOnNegativeButtonClickListener")
             viewModel.onAutomaticallyStopServiceTimePicked(null, null)
         }
         timePicker.addOnCancelListener {
-            Log.d()
+            logd("addOnCancelListener")
             viewModel.onAutomaticallyStopServiceTimePicked(null, null)
         }
         timePicker.addOnPositiveButtonClickListener {
-            Log.d()
+            logd("addOnPositiveButtonClickListener")
             viewModel.onAutomaticallyStopServiceTimePicked(timePicker.hour, timePicker.minute)
         }
         timePicker.show(supportFragmentManager, DIALOG_AUTOMATICALLY_STOP_SERVICE_TIME)

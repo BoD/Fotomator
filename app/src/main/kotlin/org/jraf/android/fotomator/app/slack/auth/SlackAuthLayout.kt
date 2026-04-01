@@ -30,14 +30,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import org.jraf.android.fotomator.R
 import org.jraf.android.fotomator.theme.FotomatorTheme
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,15 +54,18 @@ fun SlackAuthLayout(
     FotomatorTheme {
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     title = { Text(stringResource(R.string.slack_auth_title)) },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    //colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 )
             },
-            content = {
+            content = { paddingValues ->
                 SlackAuthContent(
-                    isLoading,
-                    onStartAuthenticationClick,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    isLoading = isLoading,
+                    onStartAuthenticationClick = onStartAuthenticationClick,
                 )
             }
         )
@@ -73,21 +74,31 @@ fun SlackAuthLayout(
 
 @Composable
 fun SlackAuthContent(
+    modifier: Modifier,
     isLoading: Boolean,
     onStartAuthenticationClick: () -> Unit,
 ) {
     // TODO The Crossfade is on the whole screen (Box fillMaxSize twice), instead of its contents
     // TODO otherwise there's a misalignment happening when fading - not sure why.
-    Crossfade(isLoading) { isLoading ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator(
-                    // TODO Remove this when CircularProgressIndicator exists in Material 3
-                    color = MaterialTheme.colorScheme.primary
-                )
+    Crossfade(
+        modifier = modifier,
+        targetState = isLoading,
+        label = "crossFade",
+    ) { _isLoading ->
+        if (_isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
         } else {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Button(onStartAuthenticationClick) {
                     Text(stringResource(R.string.slack_auth_button))
                 }

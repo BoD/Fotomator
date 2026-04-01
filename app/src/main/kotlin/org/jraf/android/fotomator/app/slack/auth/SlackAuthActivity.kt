@@ -32,12 +32,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import org.jraf.android.fotomator.util.observeNonNull
-import org.jraf.android.util.log.Log
-import org.jraf.android.util.string.StringUtil
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
+import org.jraf.android.fotomator.util.logd
+import org.jraf.android.fotomator.util.loge
 
 @AndroidEntryPoint
 class SlackAuthActivity : AppCompatActivity() {
@@ -48,32 +52,38 @@ class SlackAuthActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val isLoading by viewModel.isLoading.observeAsState(false)
+            val isLoading by viewModel.isLoading.collectAsState()
             SlackAuthLayout(
                 isLoading = isLoading,
                 onStartAuthenticationClick = viewModel::startAuthentication,
             )
         }
 
-        viewModel.toast.observeNonNull(this) { resId ->
-            Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.finishWithSuccess
+                        .collect {
+                            setResult(RESULT_OK)
+                            finish()
+                        }
+                }
+                launch {
+                    viewModel.toast
+                        .collect { toast ->
+                            Toast.makeText(this@SlackAuthActivity, toast, Toast.LENGTH_LONG).show()
+                        }
+                }
+            }
         }
-
-        viewModel.finishWithSuccess.observe(this) {
-            setResult(RESULT_OK)
-            finish()
-        }
-
-        Log.d("intent=${StringUtil.toString(intent)}")
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d("intent=${StringUtil.toString(intent)}")
         fromNewIntent = true
         val redirectUri = intent.data
         if (redirectUri == null) {
-            Log.e("redirectUri is null, this should never happen")
+            loge("redirectUri is null, this should never happen")
             finish()
             return
         }
@@ -86,7 +96,7 @@ class SlackAuthActivity : AppCompatActivity() {
             viewModel.setLoading(false)
         }
         fromNewIntent = false
-        Log.d()
+        logd("onStart")
     }
 
     companion object {

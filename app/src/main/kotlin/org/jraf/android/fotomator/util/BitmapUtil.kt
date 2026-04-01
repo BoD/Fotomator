@@ -30,7 +30,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import org.jraf.android.util.log.Log
 
 fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
     return try {
@@ -42,7 +41,7 @@ fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
             MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
         }
     } catch (e: Exception) {
-        Log.w(e, "Could not load bitmap from uri=$uri")
+        logw(e, "Could not load bitmap from uri=$uri")
         null
     }
 }

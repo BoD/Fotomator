@@ -24,14 +24,9 @@
  */
 package org.jraf.android.fotomator.app
 
-import android.app.Activity
 import android.app.Application
-import android.content.res.Configuration
-import android.os.Build
-import android.os.Bundle
-import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.initLogging
 
 @HiltAndroidApp
 class Application : Application() {
@@ -39,34 +34,34 @@ class Application : Application() {
         super.onCreate()
 
         // Log
-        Log.init(this, LOG_TAG, true)
+        initLogging()
 
-        // Material dynamic colors
-        DynamicColors.applyToActivitiesIfAvailable(this)
+//        // Material dynamic colors
+//        DynamicColors.applyToActivitiesIfAvailable(this)
 
-        // Change the status bar color (for some reason, this is needed on Samsung)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
-                override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
-                    // Do not touch external activities (e.g. About screen)
-                    if (!activity::class.java.name.startsWith("org.jraf.android.fotomator")) return
-
-                    val isNightMode = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-                    activity.window.statusBarColor =
-                        activity.getColor(if (isNightMode) android.R.color.system_accent1_700 else android.R.color.system_accent1_100)
-                    activity.window.navigationBarColor =
-                        activity.getColor(if (isNightMode) android.R.color.system_neutral1_900 else android.R.color.system_neutral1_10)
-                }
-
-                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-                override fun onActivityStarted(activity: Activity) {}
-                override fun onActivityResumed(activity: Activity) {}
-                override fun onActivityPaused(activity: Activity) {}
-                override fun onActivityStopped(activity: Activity) {}
-                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-                override fun onActivityDestroyed(activity: Activity) {}
-            })
-        }
+//        // Change the status bar color (for some reason, this is needed on Samsung)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+//                override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
+//                    // Do not touch external activities (e.g. About screen)
+//                    if (!activity::class.java.name.startsWith("org.jraf.android.fotomator")) return
+//
+//                    val isNightMode = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+//                    activity.window.statusBarColor =
+//                        activity.getColor(if (isNightMode) android.R.color.system_accent1_700 else android.R.color.system_accent1_100)
+//                    activity.window.navigationBarColor =
+//                        activity.getColor(if (isNightMode) android.R.color.system_neutral1_900 else android.R.color.system_neutral1_10)
+//                }
+//
+//                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+//                override fun onActivityStarted(activity: Activity) {}
+//                override fun onActivityResumed(activity: Activity) {}
+//                override fun onActivityPaused(activity: Activity) {}
+//                override fun onActivityStopped(activity: Activity) {}
+//                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+//                override fun onActivityDestroyed(activity: Activity) {}
+//            })
+//        }
     }
 
     companion object {

@@ -37,7 +37,8 @@ import org.jraf.android.fotomator.notification.createPhotoScheduledNotification
 import org.jraf.android.fotomator.notification.createPhotoUploadingNotification
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.client.slack.SlackClient
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.logd
+import org.jraf.android.fotomator.util.logw
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.util.concurrent.Executors
@@ -59,11 +60,11 @@ class UploadScheduler @Inject constructor(
 
     fun addToSchedule(mediaUri: Uri) {
         val delayMs = getScheduledTaskDelayMs()
-        Log.d("Scheduling upload mediaUri=$mediaUri in delayMs=$delayMs")
+        logd("Scheduling upload mediaUri=$mediaUri in delayMs=$delayMs")
 
         val notificationSuccess = showScheduledNotification(mediaUri, delayMs)
         if (!notificationSuccess) {
-            Log.d("Could not show notification: don't schedule")
+            logd("Could not show notification: don't schedule")
             return
         }
 
@@ -76,14 +77,14 @@ class UploadScheduler @Inject constructor(
     }
 
     fun removeFromSchedule(mediaUri: Uri) {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         val previousValue = scheduledTasks.remove(mediaUri)
         previousValue?.cancel(true)
         hideScheduledNotification(mediaUri)
     }
 
     suspend fun removeAllFromSchedule() {
-        Log.d()
+        logd("removeAllFromSchedule")
         val iterator = scheduledTasks.iterator()
         while (iterator.hasNext()) {
             val (mediaUri, future) = iterator.next()
@@ -95,7 +96,7 @@ class UploadScheduler @Inject constructor(
     }
 
     fun uploadImmediately(mediaUri: Uri) {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         val previousValue = scheduledTasks.remove(mediaUri)
         previousValue?.cancel(true)
 
@@ -105,7 +106,7 @@ class UploadScheduler @Inject constructor(
     }
 
     private suspend fun uploadContent(mediaUri: Uri) {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
 
         val media = database.mediaDao().getByUrl(mediaUri.toString())!!
 
@@ -124,11 +125,11 @@ class UploadScheduler @Inject constructor(
             @Suppress("BlockingMethodInNonBlockingContext")
             context.contentResolver.openFileDescriptor(mediaUri, "r")
         } catch (e: FileNotFoundException) {
-            Log.w("openFileDescriptor threw an exception for mediaUri=$mediaUri", e)
+            logw(e, "openFileDescriptor threw an exception for mediaUri=$mediaUri")
             null
         }
         if (parcelFileDescriptor == null) {
-            Log.w("parcelFileDescriptor is null, give up")
+            logw("parcelFileDescriptor is null, give up")
             database.mediaDao().insert(media.copy(uploadState = MediaUploadState.ERROR))
             return
         }
@@ -139,13 +140,13 @@ class UploadScheduler @Inject constructor(
             )
         }
 
-        Log.d("ok=$ok")
+        logd("ok=$ok")
 
         if (!ok) {
             val uploadFailedCount = media.uploadFailedCount + 1
-            Log.d("uploadFailedCount=$uploadFailedCount")
+            logd("uploadFailedCount=$uploadFailedCount")
             if (uploadFailedCount >= MAX_UPLOAD_FAILED_BEFORE_GIVING_UP) {
-                Log.d("Upload failed too many times: give up")
+                logd("Upload failed too many times: give up")
 
                 // Hide notification
                 hideScheduledNotification(mediaUri)
@@ -158,7 +159,7 @@ class UploadScheduler @Inject constructor(
                 )
                 scheduledTasks.remove(mediaUri)
             } else {
-                Log.d("Upload failed: re-schedule")
+                logd("Upload failed: re-schedule")
                 database.mediaDao().insert(
                     media.copy(
                         uploadState = MediaUploadState.SCHEDULED,
@@ -179,21 +180,21 @@ class UploadScheduler @Inject constructor(
     }
 
     private fun showScheduledNotification(mediaUri: Uri, delayMs: Long): Boolean {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         val notification = createPhotoScheduledNotification(context, mediaUri, delayMs) ?: return false
         NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
         return true
     }
 
     private fun showUploadingNotification(mediaUri: Uri): Boolean {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         val notification = createPhotoUploadingNotification(context, mediaUri) ?: return false
         NotificationManagerCompat.from(context).notify(mediaUri.toNotificationId(), notification)
         return true
     }
 
     private fun hideScheduledNotification(mediaUri: Uri) {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         NotificationManagerCompat.from(context).cancel(mediaUri.toNotificationId())
     }
 

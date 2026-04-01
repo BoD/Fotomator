@@ -33,16 +33,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import org.jetbrains.annotations.Contract
 import org.jraf.android.fotomator.app.slack.channel.SlackPickChannelActivity.Contract.Companion.EXTRA_RESULT
 import org.jraf.android.fotomator.upload.client.slack.SlackChannel
 import org.jraf.android.fotomator.upload.client.slack.SlackConversation
-import org.jraf.android.fotomator.util.observeNonNull
-import org.jraf.android.util.log.Log
+import org.jraf.android.fotomator.util.logd
 
 @AndroidEntryPoint
 class SlackPickChannelActivity : AppCompatActivity() {
@@ -51,12 +53,13 @@ class SlackPickChannelActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val layoutState by viewModel.layoutState.observeAsState(SlackPickChannelLayoutState.Loading)
+            val layoutState by viewModel.layoutState.collectAsState()
+            @Suppress("DEPRECATION")
             SlackPickChannelLayout(
                 state = layoutState,
                 onBackClick = ::onBackPressed,
                 onChannelClick = { channel ->
-                    Log.d("channel=$channel")
+                    logd("channel=$channel")
                     setResult(
                         RESULT_OK,
                         Intent().putExtra(
@@ -73,19 +76,28 @@ class SlackPickChannelActivity : AppCompatActivity() {
                     finish()
                 },
                 onSearchQueryChange = { query ->
-                    Log.d("query=$query")
+                    logd("query=$query")
                     viewModel.updateSearchQuery(query)
                 }
             )
         }
 
-        viewModel.toast.observeNonNull(this) { resId ->
-            Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
-        }
-
-        viewModel.finishWithError.observe(this) {
-            setResult(RESULT_CANCELED)
-            finish()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.finishWithError
+                        .collect {
+                            setResult(RESULT_CANCELED)
+                            finish()
+                        }
+                }
+                launch {
+                    viewModel.toast
+                        .collect { toast ->
+                            Toast.makeText(this@SlackPickChannelActivity, toast, Toast.LENGTH_LONG).show()
+                        }
+                }
+            }
         }
     }
 
@@ -98,6 +110,6 @@ class SlackPickChannelActivity : AppCompatActivity() {
         data class PickChannelResult(val id: String, val name: String) : Parcelable
 
         override fun createIntent(context: Context, input: Unit) = Intent(context, SlackPickChannelActivity::class.java)
-        override fun parseResult(resultCode: Int, intent: Intent?): PickChannelResult? = intent?.getParcelableExtra(EXTRA_RESULT)
+        override fun parseResult(resultCode: Int, intent: Intent?): PickChannelResult? = @Suppress("DEPRECATION") intent?.getParcelableExtra(EXTRA_RESULT)
     }
 }

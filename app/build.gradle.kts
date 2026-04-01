@@ -1,84 +1,50 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.compose.compiler)
     kotlin("kapt")
-    id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
-    id("com.google.android.gms.oss-licenses-plugin")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.parcelize)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    compileSdk = AppConfig.COMPILE_SDK
+    namespace = "org.jraf.android.fotomator"
+
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = AppConfig.APPLICATION_ID
-        minSdk = AppConfig.MIN_SDK
-        targetSdk = AppConfig.TARGET_SDK
-        versionCode = AppConfig.buildNumber
-        versionName = AppConfig.buildProperties["versionName"]
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        // For now we enable strict mode for all the configs
-        buildConfigField("boolean", "STRICT_MODE", "true")
-        // For now we enable debug logs all the configs
-        buildConfigField("boolean", "DEBUG_LOGS", "true")
-
-        resourceConfigurations.set("en", "fr")
-
-        // Useful for api keys in the manifest (Maps, Crashlytics, ...)
-        manifestPlaceholders.set(AppConfig.buildProperties as Map<String, Any>)
-
-        // Setting this to true disables the png generation at buildtime
-        // (see http://android-developers.blogspot.fr/2016/02/android-support-library-232.html)
-        vectorDrawables.useSupportLibrary = true
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 5
+        versionName = "1.0.0"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(AppConfig.buildProperties["signingStoreFile"]!!)
-            storePassword = AppConfig.buildProperties["signingStorePassword"]
-            keyAlias = AppConfig.buildProperties["signingKeyAlias"]
-            keyPassword = AppConfig.buildProperties["signingKeyPassword"]
+            storeFile = file(System.getenv("SIGNING_STORE_PATH") ?: ".")
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
         }
     }
 
     buildTypes {
         getByName("debug") {
             applicationIdSuffix = ".debug"
-
-            buildConfigField("String", "GIT_SHA1", "\"dev\"")
-            buildConfigField("String", "BUILD_DATE", "\"dev\"")
         }
 
         getByName("release") {
-            buildConfigField("String", "GIT_SHA1", "\"${getGitSha1()}\"")
-            buildConfigField("String", "BUILD_DATE", "\"${buildDate}\"")
-
-            // Disable proguard for now - trying to investigate "killed service" issues and obfuscation doesn't help
-//            isMinifyEnabled = true
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"),
-//                "proguard-rules.pro"
-//            )
-//            isShrinkResources = true
-
-            isMinifyEnabled = false
-            isShrinkResources = false
-
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
     }
 
     buildFeatures {
-        dataBinding = true
         compose = true
-    }
-
-    lint {
-        abortOnError = true
-        textReport = true
-        ignoreWarnings = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -88,73 +54,50 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
-        freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.ANDROIDX_COMPOSE
-    }
-
-    sourceSets {
-        getByName("main").java.srcDirs("src/main/kotlin")
     }
 }
 
 dependencies {
-    // Kotlin
-    implementation(kotlin("stdlib", Versions.KOTLIN))
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
-    // AndroidX
-    implementation("androidx.core", "core-ktx", Versions.ANDROIDX_CORE)
-    implementation("androidx.appcompat", "appcompat", Versions.ANDROIDX_APPCOMPAT)
-    implementation("androidx.fragment", "fragment-ktx", Versions.ANDROIDX_FRAGMENT)
-    implementation("androidx.activity", "activity-ktx", Versions.ANDROIDX_ACTIVITY)
-    implementation("androidx.lifecycle", "lifecycle-livedata-ktx", Versions.ANDROIDX_LIFECYCLE)
-    implementation("androidx.room", "room-runtime", Versions.ANDROIDX_ROOM)
-    kapt("androidx.room", "room-compiler", Versions.ANDROIDX_ROOM)
-    implementation("androidx.room", "room-ktx", Versions.ANDROIDX_ROOM)
-    implementation("androidx.work", "work-runtime-ktx", Versions.ANDROIDX_WORK_MANAGER)
-    kapt("androidx.hilt", "hilt-compiler", Versions.ANDROIDX_HILT)
+    implementation(libs.google.material)
 
-    // Material
-    implementation("com.google.android.material", "material", Versions.MATERIAL)
+    implementation(libs.timber)
 
-    // JRAF
-    implementation("org.jraf", "kprefs", Versions.KPREFS)
-    implementation("com.github.BoD", "jraf-android-util", "-SNAPSHOT")
-//    implementation("org.jraf", "jraf-android-util", "1.0.0")
+    implementation(libs.kotlinx.coroutines.android)
 
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.service)
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.ui.util)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
+
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.kprefs)
+
+    // TODO remove
     // Retrofit / Moshi
-    implementation("com.squareup.retrofit2", "retrofit", Versions.RETROFIT)
-    implementation("com.squareup.retrofit2", "converter-moshi", Versions.RETROFIT)
-    implementation("com.squareup.moshi", "moshi", Versions.MOSHI)
-    kapt("com.squareup.moshi", "moshi-kotlin-codegen", Versions.MOSHI)
-    implementation("com.squareup.okhttp3", "logging-interceptor", Versions.OKHTTP)
-
-    // Hilt
-    implementation("com.google.dagger", "hilt-android", Versions.HILT)
-    kapt("com.google.dagger", "hilt-compiler", Versions.HILT)
-
-    // Play services
-    implementation("com.google.android.gms", "play-services-oss-licenses", Versions.PLAY_SERVICES_OSS_LICENSE)
-
-    // Compose
-    implementation("androidx.compose.ui", "ui", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.ui", "ui-tooling", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.foundation", "foundation", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.material", "material", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.material", "material-icons-core", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.material", "material-icons-extended", Versions.ANDROIDX_COMPOSE)
-    implementation("androidx.compose.material3", "material3", Versions.ANDROIDX_COMPOSE_MATERIAL3)
-    implementation("androidx.activity", "activity-compose", Versions.ANDROIDX_ACTIVITY)
-    implementation("androidx.lifecycle", "lifecycle-viewmodel-compose", Versions.ANDROIDX_LIFECYCLE_VIEWMODEL_COMPOSE)
-    implementation("androidx.compose.runtime", "runtime-livedata", Versions.ANDROIDX_COMPOSE)
-
-    // Testing
-    androidTestImplementation("androidx.test.espresso", "espresso-core", Versions.ESPRESSO) {
-        exclude(group = "com.android.support", module = "support-annotations")
-    }
-    testImplementation("junit", "junit", Versions.JUNIT)
+    implementation("com.squareup.retrofit2", "retrofit", "2.9.0")
+    implementation("com.squareup.retrofit2", "converter-moshi", "2.9.0")
+    implementation("com.squareup.moshi", "moshi", "1.15.1")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
+    implementation("com.squareup.okhttp3", "logging-interceptor", "4.9.3")
 }
 
-// Run `./gradlew bundleRelease` to build a release version
+// ¯\_(ツ)_/¯
+kapt {
+    correctErrorTypes = true
+}
+
+// To release:
+// SIGNING_STORE_PATH=path/to/upload.keystore SIGNING_STORE_PASSWORD=password SIGNING_KEY_ALIAS=upload SIGNING_KEY_PASSWORD=password ./gradlew :app:bundleRelease

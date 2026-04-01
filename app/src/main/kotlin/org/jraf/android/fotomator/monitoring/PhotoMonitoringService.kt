@@ -25,7 +25,6 @@
 package org.jraf.android.fotomator.monitoring
 
 import android.annotation.SuppressLint
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.ContentUris
 import android.content.Context
@@ -39,9 +38,13 @@ import android.os.Looper
 import android.provider.BaseColumns
 import android.provider.MediaStore
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.Observer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -54,8 +57,7 @@ import org.jraf.android.fotomator.notification.createNotificationChannel
 import org.jraf.android.fotomator.notification.createPhotoMonitoringServiceNotification
 import org.jraf.android.fotomator.prefs.AppPrefs
 import org.jraf.android.fotomator.upload.scheduler.UploadScheduler
-import org.jraf.android.util.log.Log
-import org.jraf.android.util.string.StringUtil
+import org.jraf.android.fotomator.util.logd
 import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -64,7 +66,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PhotoMonitoringService : Service() {
+class PhotoMonitoringService : LifecycleService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val mutex = Mutex()
     private var broadcastReceiver: BroadcastReceiver? = null
@@ -81,10 +83,10 @@ class PhotoMonitoringService : Service() {
     private val automaticallyStopServiceScheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private var automaticallyStopServiceScheduledTask: ScheduledFuture<*>? = null
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(intent: Intent): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("isStarted=$isStarted")
+        logd("isStarted=$isStarted")
 
         if (isStarted) return START_STICKY
         isStarted = true
@@ -98,7 +100,7 @@ class PhotoMonitoringService : Service() {
 
     private fun startForeground() {
         createNotificationChannel(this)
-        val notification = createPhotoMonitoringServiceNotification(this, appPrefs.automaticallyStopServiceDateTimeLiveData.value)
+        val notification = createPhotoMonitoringServiceNotification(this, appPrefs.automaticallyStopServiceDateTimeFlow.value)
         startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
@@ -106,7 +108,7 @@ class PhotoMonitoringService : Service() {
         return object : ContentObserver(mainHandler) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 val mediaUri = getLatestContentFromMediaStore(mediaStoreUri)
-                Log.d("$mediaStoreUri has changed uri=$uri mediaUri=$mediaUri")
+                logd("$mediaStoreUri has changed uri=$uri mediaUri=$mediaUri")
                 if (mediaUri != null) handleMedia(mediaUri)
             }
         }
@@ -117,7 +119,7 @@ class PhotoMonitoringService : Service() {
     private val externalMediaContentObserver = createContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
     private fun startMonitoring() {
-        Log.d("isStarted=$isStarted")
+        logd("isStarted=$isStarted")
 
         handleLatestContent()
 
@@ -135,10 +137,10 @@ class PhotoMonitoringService : Service() {
 
     private fun handleLatestContent() {
         val isFirstRun = appPrefs.isFirstRun
-        Log.d("isFirstRun=$isFirstRun")
+        logd("isFirstRun=$isFirstRun")
         if (isFirstRun) appPrefs.isFirstRun = false
         val internalMediaContentUri = getLatestContentFromMediaStore(MediaStore.Images.Media.INTERNAL_CONTENT_URI)
-        Log.d("internalMediaContentUri=$internalMediaContentUri")
+        logd("internalMediaContentUri=$internalMediaContentUri")
         if (internalMediaContentUri != null) {
             if (isFirstRun) {
                 optOutMediaOnFirstRun(internalMediaContentUri)
@@ -148,7 +150,7 @@ class PhotoMonitoringService : Service() {
         }
 
         val externalMediaContentUri = getLatestContentFromMediaStore(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        Log.d("externalMediaContentUri=$externalMediaContentUri")
+        logd("externalMediaContentUri=$externalMediaContentUri")
         if (externalMediaContentUri != null) {
             if (isFirstRun) {
                 optOutMediaOnFirstRun(externalMediaContentUri)
@@ -159,14 +161,14 @@ class PhotoMonitoringService : Service() {
     }
 
     private fun stopMonitoring() {
-        Log.d()
+        logd("stopMonitoring")
         contentResolver.unregisterContentObserver(internalMediaContentObserver)
         contentResolver.unregisterContentObserver(externalMediaContentObserver)
     }
 
     @SuppressLint("Recycle", "InlinedApi")
     private fun getLatestContentFromMediaStore(mediaStoreUri: Uri): Uri? {
-        Log.d("mediaStoreUri=$mediaStoreUri")
+        logd("mediaStoreUri=$mediaStoreUri")
         val cursor = contentResolver.query(
             mediaStoreUri,
             arrayOf(BaseColumns._ID, MediaStore.MediaColumns.BUCKET_DISPLAY_NAME),
@@ -178,7 +180,7 @@ class PhotoMonitoringService : Service() {
         if (cursor.moveToNext()) {
             val bucketName = cursor.getString(1)
             val relevant = bucketName.lowercase(Locale.US) in RELEVANT_BUCKET_NAMES
-            Log.d("bucketName=$bucketName relevant=$relevant")
+            logd("bucketName=$bucketName relevant=$relevant")
             id = if (!relevant) -1 else cursor.getLong(0)
         }
         cursor.close()
@@ -190,10 +192,10 @@ class PhotoMonitoringService : Service() {
             val mediaUriStr = mediaUri.toString()
             val foundMedia = database.mediaDao().getByUrl(mediaUriStr)
             if (foundMedia != null) {
-                Log.d("Media $mediaUriStr already known: ignore")
+                logd("Media $mediaUriStr already known: ignore")
                 true
             } else {
-                Log.d("Media $mediaUriStr not known: schedule")
+                logd("Media $mediaUriStr not known: schedule")
                 val media = Media(uri = mediaUriStr, uploadState = MediaUploadState.SCHEDULED)
                 database.mediaDao().insert(media)
                 false
@@ -212,7 +214,7 @@ class PhotoMonitoringService : Service() {
      * picked up. This opts them out.
      */
     private fun optOutMediaOnFirstRun(mediaUri: Uri) {
-        Log.d("mediaUri=$mediaUri")
+        logd("mediaUri=$mediaUri")
         GlobalScope.launch {
             database.mediaDao().insert(Media(uri = mediaUri.toString(), uploadState = MediaUploadState.OPT_OUT))
         }
@@ -220,10 +222,10 @@ class PhotoMonitoringService : Service() {
 
 
     private fun registerBroadcastReceiver() {
-        Log.d()
+        logd("registerBroadcastReceiver")
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                Log.d("intent=${StringUtil.toString(intent)}")
+                logd("onReceive")
                 when (intent.action) {
                     ACTION_STOP_SERVICE -> {
                         appPrefs.isServiceEnabled = false
@@ -259,36 +261,43 @@ class PhotoMonitoringService : Service() {
         broadcastReceiver = null
     }
 
+    private var startObservingAutomaticallyStopServiceDateTime: Job? = null
+
     private fun startObservingAutomaticallyStopServiceDateTime() {
-        appPrefs.automaticallyStopServiceDateTimeLiveData.observeForever(automaticallyStopServiceDateTimeObserver)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                startObservingAutomaticallyStopServiceDateTime = launch {
+                    appPrefs.automaticallyStopServiceDateTimeFlow.collect { automaticallyStopServiceDateTime ->
+                        logd("automaticallyStopServiceDateTime=$automaticallyStopServiceDateTime")
+                        val notification = createPhotoMonitoringServiceNotification(this@PhotoMonitoringService, automaticallyStopServiceDateTime)
+                        NotificationManagerCompat.from(this@PhotoMonitoringService).notify(ONGOING_NOTIFICATION_ID, notification)
+
+                        automaticallyStopServiceScheduledTask?.cancel(true)
+                        if (automaticallyStopServiceDateTime == null) {
+                            // Un-schedule auto stop
+                            automaticallyStopServiceScheduledTask = null
+                        } else {
+                            // Schedule auto stop
+                            val delay = automaticallyStopServiceDateTime - System.currentTimeMillis()
+                            automaticallyStopServiceScheduledTask = automaticallyStopServiceScheduler.schedule({
+                                appPrefs.isServiceEnabled = false
+                                stopSelf()
+                            }, delay, TimeUnit.MILLISECONDS)
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
     private fun stopObservingAutomaticallyStopServiceDateTime() {
-        appPrefs.automaticallyStopServiceDateTimeLiveData.removeObserver(automaticallyStopServiceDateTimeObserver)
-    }
-
-    private val automaticallyStopServiceDateTimeObserver = Observer<Long?> { automaticallyStopServiceDateTime ->
-        Log.d("automaticallyStopServiceDateTime=$automaticallyStopServiceDateTime")
-        val notification = createPhotoMonitoringServiceNotification(this, automaticallyStopServiceDateTime)
-        NotificationManagerCompat.from(this).notify(ONGOING_NOTIFICATION_ID, notification)
-
-        automaticallyStopServiceScheduledTask?.cancel(true)
-        if (automaticallyStopServiceDateTime == null) {
-            // Un-schedule auto stop
-            automaticallyStopServiceScheduledTask = null
-        } else {
-            // Schedule auto stop
-            val delay = automaticallyStopServiceDateTime - System.currentTimeMillis()
-            automaticallyStopServiceScheduledTask = automaticallyStopServiceScheduler.schedule({
-                appPrefs.isServiceEnabled = false
-                stopSelf()
-            }, delay, TimeUnit.MILLISECONDS)
-        }
+        startObservingAutomaticallyStopServiceDateTime?.cancel()
     }
 
 
     override fun onDestroy() {
-        Log.d("isStarted=$isStarted")
+        logd("isStarted=$isStarted")
         isStarted = false
         stopMonitoring()
         unregisterBroadcastReceiver()
@@ -296,7 +305,7 @@ class PhotoMonitoringService : Service() {
             uploadScheduler.removeAllFromSchedule()
         }
         stopObservingAutomaticallyStopServiceDateTime()
-        appPrefs.automaticallyStopServiceDateTimeLiveData.value = null
+        appPrefs.automaticallyStopServiceDateTimeFlow.value = null
         automaticallyStopServiceScheduledTask?.cancel(true)
         automaticallyStopServiceScheduledTask = null
         super.onDestroy()
